@@ -11,18 +11,18 @@ const CASES = {
   'Xbox': { ...DVD, plastic: '#3c8c2b' }, 'Xbox 360': { ...DVD, plastic: '#86c552', ink: '#17250c' },
   'Dreamcast': { ...DVD, h: 0.66, d: 0.056, plastic: '#e9ebee', ink: '#23232a' }, 'Saturn': { ...DVD, h: 0.93, d: 0.09 },
 };
-const ANGLE = 74 * Math.PI / 180;
 let pulled = null;
 
 function caseSpec(g, H) {
   const c = CASES[g.platform] || DVD;
   const h = Math.round(H * c.h), ratio = g.coverUrl ? Math.min(1.5, Math.max(0.62, g.ratio || 0.71)) : 0.71;
-  const w = Math.round(h * ratio), d = Math.round(H * c.d);
-  return { ...c, h, w, d, slot: Math.round(d * Math.sin(ANGLE) + w * Math.cos(ANGLE) * 0.84) + 4 };
+  // Rücken etwas kräftiger als maßstabsgetreu, damit Titel und Motiv lesbar bleiben
+  const w = Math.round(h * ratio), d = Math.round(H * c.d * 1.6);
+  return { ...c, h, w, d, slot: d + 2 };
 }
 function caseHtml(g, s) {
   const art = g.coverUrl ? `<img src="${esc(g.coverUrl)}" alt="" draggable="false">` : `<div class="ph"><b>${esc(g.title)}</b></div>`;
-  return `<div class="case ${s.kind}" style="--w:${s.w}px;--h:${s.h}px;--d:${s.d}px;--ch:${hue(g)};--plastic:${s.plastic || '#111'};--ink:${s.ink || '#fff'}">
+  return `<div class="case ${s.kind}${g.coverUrl ? ' art' : ''}" style="--w:${s.w}px;--h:${s.h}px;--d:${s.d}px;--ch:${hue(g)};--plastic:${s.plastic || '#111'};--ink:${s.ink || '#fff'}${g.coverUrl ? `;--art:url('${g.coverUrl.replace(/'/g, '%27')}')` : ''}">
     <div class="sway"><div class="front">${art}<i class="gloss"></i></div>
     <div class="spine"><span class="plat">${esc(SHORT[g.platform] || g.platform || '')}</span><span class="ttl">${esc(g.title)}</span></div>
     <div class="top"></div></div></div>`;
@@ -35,16 +35,20 @@ function shelfGames() {
 function renderShelf() {
   const el = $('#shelf'); if (!el) return;
   const games = shelfGames();
-  const H = Math.round(Math.min(330, Math.max(210, innerHeight * 0.3)));
-  const maxW = Math.min(1060, el.clientWidth - 2 * parseFloat(getComputedStyle(el).paddingLeft)) - 92;
+  const H = Math.round(Math.min(340, Math.max(210, innerHeight * 0.3)));
+  const avail = Math.min(840, el.clientWidth - 2 * parseFloat(getComputedStyle(el).paddingLeft)) - 92;
   const groups = new Map();
   for (const g of games) groups.set(g.platform || '', [...(groups.get(g.platform || '') || []), g]);
   const ordered = [...groups].sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
   // Gruppen auf Böden verteilen; zu breite Gruppen laufen auf dem nächsten Boden weiter
+  // Böden gleichmäßig füllen statt den ersten voll und den letzten fast leer zu lassen
+  const widths = ordered.map(([, list]) => list.reduce((n, g) => n + caseSpec(g, H).slot, 0) + 30);
+  const total = widths.reduce((a, b) => a + b, 0), count = Math.max(1, Math.ceil(total / avail));
+  const maxW = Math.min(avail, Math.max(total / count * 1.12, Math.min(avail, Math.max(...widths, 0))));
   const boards = [[]]; let used = 0;
   for (const [name, list] of ordered) {
     let part = [], width = 0;
-    const flush = () => { if (part.length) { boards[boards.length - 1].push({ name, items: part }); used += width + 34; part = []; width = 0; } };
+    const flush = () => { if (part.length) { boards[boards.length - 1].push({ name, items: part }); used += width + 30; part = []; width = 0; } };
     const sorted = list.sort((a, b) => sortKey(a).localeCompare(sortKey(b))).map((g) => ({ g, s: caseSpec(g, H) }));
     const total = sorted.reduce((n, x) => n + x.s.slot, 0);
     if (used && used + Math.min(total, maxW * 0.5) > maxW) { boards.push([]); used = 0; }
@@ -73,7 +77,7 @@ function pullOut(id) {
   const tx = innerWidth * 0.3 - (s.w * scale) / 2, ty = innerHeight * 0.5 - (s.h * scale) / 2 + 10;
   const sx = r.left, sy = r.bottom - s.h;
   c.style.cssText += `;position:fixed;left:0;top:0;margin:0;transform-origin:0 0;transition:none`;
-  const T = (x, y, z, a, k) => `translate(${x}px, ${y}px) perspective(1500px) translateZ(${z}px) rotateX(${a > 60 ? -2 : 0}deg) rotateY(${a}deg) scale(${k})`;
+  const T = (x, y, z, a, k) => `translate(${x}px, ${y}px) perspective(1500px) translateZ(${z}px) rotateY(${a}deg) scale(${k})`;
   slot.classList.add('gone');
   $('#p-title').textContent = g.title; $('#p-title').classList.toggle('long', g.title.length > 24);
   $('#p-desc').textContent = g.description || '';
@@ -82,10 +86,10 @@ function pullOut(id) {
   $('#p-fav').classList.toggle('on', !!g.favorite);
   pullEl.hidden = false; void pullEl.offsetWidth; pullEl.classList.add('on');
   const anim = c.animate([
-    { transform: T(sx, sy, 0, 74, 1), offset: 0 },
-    { transform: T(sx, sy - 6, 150, 70, 1), offset: 0.32, easing: 'cubic-bezier(.3,0,.2,1)' },
+    { transform: T(sx, sy, 0, 90, 1), offset: 0 },
+    { transform: T(sx, sy - 4, 190, 66, 1), offset: 0.34, easing: 'cubic-bezier(.3,0,.2,1)' },
     { transform: T(tx, ty, 0, -14, scale), offset: 1 },
-  ], { duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 900, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
+  ], { duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1000, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
   anim.finished.then(() => { if (pulled === id) c.classList.add('idle'); }).catch(() => {});
   pullEl._back = { sx, sy, tx, ty, scale, T, slot, c };
   document.activeElement?.blur?.();
@@ -95,8 +99,8 @@ function pushBack(then) {
   b.c.classList.remove('idle'); pullEl.classList.remove('on');
   const anim = b.c.animate([
     { transform: b.T(b.tx, b.ty, 0, -14, b.scale), offset: 0 },
-    { transform: b.T(b.sx, b.sy - 6, 150, 70, 1), offset: 0.68 },
-    { transform: b.T(b.sx, b.sy, 0, 74, 1), offset: 1 },
+    { transform: b.T(b.sx, b.sy - 4, 190, 66, 1), offset: 0.66 },
+    { transform: b.T(b.sx, b.sy, 0, 90, 1), offset: 1 },
   ], { duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 620, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
   const id = pulled;
   anim.finished.catch(() => {}).then(() => {

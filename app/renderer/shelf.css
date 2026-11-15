@@ -16,52 +16,60 @@
 .board { position: relative; padding-top: 38px; }
 .lamp { position: absolute; left: 4%; right: 4%; top: 0; height: 3px; border-radius: 2px; background: hsl(var(--h) 100% 82%); box-shadow: 0 0 14px 2px hsl(var(--h) 100% 70% / .9), 0 0 60px 10px hsl(var(--h) 90% 60% / .45); transition: background .8s, box-shadow .8s; }
 .lamp::after { content: ''; position: absolute; left: -4%; right: -4%; top: 3px; height: calc(var(--H) * .9); background: radial-gradient(60% 100% at 50% 0%, hsl(var(--h) 80% 60% / .2), transparent 75%); pointer-events: none; transition: background .8s; }
-.stand { position: relative; display: flex; align-items: flex-end; gap: 26px; min-height: calc(var(--H) + 8px); padding: 0 10px; }
-.grp { position: relative; display: flex; align-items: flex-end; }
+.stand { position: relative; display: flex; align-items: flex-end; gap: 24px; min-height: calc(var(--H) + 8px); padding: 0 10px; }
+.grp { position: relative; display: flex; align-items: flex-end; transition: transform .55s var(--ease); }
+.grp:has(.slot:is(:hover, .hov, :focus-visible)) ~ .grp { transform: translateX(34px); }
 .tag { position: absolute; left: 0; bottom: -25px; z-index: 2; padding: 2px 8px 3px; border-radius: 4px; font: 700 11px/1 'Instrument'; letter-spacing: .04em; color: #1c140f; background: linear-gradient(180deg, #e9c98a, #b98f4e); box-shadow: 0 1px 0 rgba(255,255,255,.5) inset, 0 2px 4px rgba(0,0,0,.6); white-space: nowrap; }
 .plank { position: relative; height: 30px; margin: 0 -18px; border-radius: 3px; background: linear-gradient(180deg, #7a5a45 0, #5d4333 3px, #4a3428 4px, #3a2920 100%); box-shadow: 0 18px 26px -10px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.18) inset; }
 .plank::before { content: ''; position: absolute; left: 18px; right: 18px; bottom: 100%; height: 16px; background: linear-gradient(180deg, transparent, rgba(0,0,0,.55)); pointer-events: none; }
 
 /* ---------- Hüllen ---------- */
-.slot { position: relative; flex: none; width: var(--sw); height: var(--h); z-index: 1; }
-.slot:hover, .slot:focus-visible { z-index: 5; outline: none; }
+/* Im Regal steht jede Hülle gerade: zu sehen ist nur der Rücken. Das Cover liegt dahinter und kommt erst beim Herausziehen ins Bild. */
+.slot { position: relative; flex: none; width: var(--sw); height: var(--h); z-index: 1; transition: transform .55s var(--ease); }
+.slot:hover, .slot.hov, .slot:focus-visible { z-index: 5; outline: none; }
+/* Die Nachbarn rechts rücken ein Stück, wenn eine Hülle herauskommt */
+.slot:is(:hover, .hov, :focus-visible) ~ .slot { transform: translateX(26px); }
+.slot:is(:hover, .hov, :focus-visible) + .slot { transform: translateX(34px); }
 .slot.gone .case { visibility: hidden; }
-.slot .foot { position: absolute; left: 2px; right: 6px; bottom: -3px; height: 8px; border-radius: 50%; background: rgba(0,0,0,.7); filter: blur(4px); }
+.slot .foot { position: absolute; left: 0; right: 0; bottom: -4px; height: 9px; border-radius: 50%; background: rgba(0,0,0,.75); filter: blur(4px); transition: transform .55s var(--ease), opacity .55s; }
+.slot:is(:hover, .hov, :focus-visible) .foot { transform: scaleX(2.2) translateX(20%); opacity: .5; }
 .slot.lost .case img, .slot.lost .case .spine { filter: grayscale(.9) brightness(.7); }
 .case { position: absolute; left: 0; bottom: 0; width: var(--w); height: var(--h); transform-style: preserve-3d; transform-origin: 0 50%;
-  transform: perspective(1500px) translateZ(0) rotateX(-2deg) rotateY(74deg); transition: transform .5s var(--ease); will-change: transform; }
-.slot:hover .case, .slot:focus-visible .case { transform: perspective(1500px) translateZ(70px) rotateX(-2deg) rotateY(57deg); transition-duration: .28s; }
-.slot:active .case { transform: perspective(1500px) translateZ(96px) rotateX(-2deg) rotateY(52deg); }
+  transform: perspective(1500px) translateZ(0) rotateY(90deg); transition: transform .6s cubic-bezier(.22,.9,.24,1); will-change: transform; }
+.slot:is(:hover, .hov, :focus-visible) .case { transform: perspective(1500px) translateZ(120px) rotateY(54deg); }
+.slot:active .case { transform: perspective(1500px) translateZ(150px) rotateY(48deg); transition-duration: .25s; }
 .sway { position: absolute; inset: 0; transform-style: preserve-3d; }
 .case .front, .case .spine, .case .top { position: absolute; left: 0; top: 0; overflow: hidden; }
 .case .front { width: 100%; height: 100%; transform: translateZ(var(--d)); background: #222; border-radius: 3px 5px 5px 3px; backface-visibility: hidden; }
 .case .front img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .case .front .ph { position: absolute; inset: 0; display: flex; align-items: flex-end; padding: 10px; background: linear-gradient(160deg, hsl(var(--ch) 55% 34%), hsl(calc(var(--ch) + 50) 60% 14%)); }
 .case .front .ph b { font: 800 18px/.95 'Bricolage'; font-stretch: 76%; overflow-wrap: anywhere; text-align: left; }
-.case .spine { width: var(--d); height: 100%; transform-origin: 0 50%; transform: rotateY(-90deg); display: flex; flex-direction: column; align-items: center; color: var(--ink); border-radius: 2px;
-  background: linear-gradient(90deg, rgba(0,0,0,.35), transparent 22%, rgba(255,255,255,.1) 55%, rgba(0,0,0,.3)), linear-gradient(180deg, hsl(var(--ch) 58% 34%), hsl(var(--ch) 62% 17%)); }
-.case .spine .plat { flex: none; width: 100%; padding: 6px 0 5px; text-align: center; font: 800 calc(var(--d) * .36)/1 'Instrument'; letter-spacing: -.02em; }
-.case .spine .ttl { flex: 1; min-height: 0; writing-mode: vertical-rl; padding: 8px 0 10px; font: 700 calc(min(var(--d) * .5, 15px))/1 'Bricolage'; font-stretch: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,.5); display: flex; align-items: center; }
+/* Rücken: Motiv aus dem Cover, darüber Plattform und Titel */
+.case .spine { width: var(--d); height: 100%; transform-origin: 0 50%; transform: rotateY(-90deg); display: flex; flex-direction: column; align-items: center; color: #fff; border-radius: 2px;
+  background: linear-gradient(180deg, hsl(var(--ch) 58% 36%), hsl(var(--ch) 62% 16%)); }
+.case.art .spine::before { content: ''; position: absolute; inset: -12%; background: var(--art) center / cover; filter: blur(7px) saturate(1.7) brightness(1); }
+.case .spine::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,.5), rgba(255,255,255,.14) 14%, transparent 34%, transparent 70%, rgba(0,0,0,.45)), linear-gradient(180deg, rgba(255,255,255,.2), transparent 16%, rgba(0,0,0,.12) 60%, rgba(0,0,0,.42)); }
+.case .spine .plat { position: relative; z-index: 1; flex: none; width: 100%; padding: 7px 0 6px; text-align: center; font: 800 calc(min(var(--d) * .31, 13px))/1 'Instrument'; letter-spacing: -.02em; }
+.case .spine .ttl { position: relative; z-index: 1; flex: 1; min-height: 0; writing-mode: vertical-rl; padding: 10px 0 14px; font: 700 calc(min(var(--d) * .44, 17px))/1 'Bricolage'; font-stretch: 80%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 12px rgba(0,0,0,.5); }
 .case .top { width: 100%; height: var(--d); transform-origin: 50% 0; transform: rotateX(90deg); background: linear-gradient(180deg, #000, var(--plastic)); }
 .case .gloss { position: absolute; inset: 0; pointer-events: none; }
-/* Kunststoffhülle: Rahmen, Scharnier, Glanz */
+/* Kunststoffhülle: Rahmen in Hüllenfarbe, Scharnier, Glanz */
 .case.dvd .front { box-shadow: 0 0 0 2px var(--plastic) inset; }
 .case.dvd .front::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7%; z-index: 1; background: linear-gradient(90deg, var(--plastic), color-mix(in oklab, var(--plastic) 70%, #fff) 45%, color-mix(in oklab, var(--plastic) 80%, #000) 60%, transparent); opacity: .85; }
 .case.dvd .gloss { background: linear-gradient(112deg, rgba(255,255,255,.24) 0, rgba(255,255,255,.05) 26%, transparent 42%, transparent 70%, rgba(255,255,255,.08)); }
-.case.dvd .spine { box-shadow: 0 0 0 2px var(--plastic) inset, 0 5px 0 0 var(--plastic) inset, 0 -5px 0 0 var(--plastic) inset; }
-.case.dvd .spine .plat { background: var(--plastic); color: var(--ink); margin-bottom: 2px; }
-.case.dvd .spine .ttl { color: #fff; }
+.case.dvd .spine { border: solid var(--plastic); border-width: 6px 3px; border-radius: 3px; }
+.case.dvd .spine .plat { background: var(--plastic); color: var(--ink); padding-top: 4px; border-radius: 0 0 3px 3px; }
 /* Karton: matte Kanten */
 .case.box .front { border-radius: 2px; }
 .case.box .gloss { background: linear-gradient(180deg, rgba(255,255,255,.08), transparent 30%, rgba(0,0,0,.12)); }
-.case.box .spine { color: #fff; border-radius: 1px; box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset; }
-.case.box .spine .ttl { font-size: calc(min(var(--d) * .34, 15px)); }
-.case.box .spine .plat { font-size: calc(min(var(--d) * .3, 13px)); }
+.case.box .spine { border-radius: 1px; box-shadow: 0 0 0 1px rgba(0,0,0,.4) inset; }
+.case.box .spine .plat { background: rgba(0,0,0,.55); }
 .case.box .top { background: linear-gradient(180deg, #000, hsl(var(--ch) 50% 22%)); }
-.load .slot .case { animation: stock .7s var(--ease) both; animation-delay: calc(.15s + var(--i) * 45ms); }
 @keyframes stockfade { from { opacity: 0; } }
 .load .slot { animation: stockfade .5s ease both; animation-delay: calc(.15s + var(--i) * 45ms); }
-@keyframes stock { from { transform: perspective(1500px) translateZ(-120px) translateY(-30px) rotateX(-2deg) rotateY(74deg); } }
+@keyframes stock { from { transform: perspective(1500px) translateZ(140px) translateY(-26px) rotateY(90deg); } }
+.load .slot .case { animation: stock .8s var(--ease) both; animation-delay: calc(.15s + var(--i) * 45ms); }
 
 /* ---------- Herausgezogen ---------- */
 .pull { position: fixed; inset: 0; z-index: 40; }

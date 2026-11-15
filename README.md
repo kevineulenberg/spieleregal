@@ -16,7 +16,7 @@
 ## Was es kann
 
 - **Bühne und Regale.** Das gewählte Spiel steht groß oben, mit 3D-Cover, Beschreibung und „Spielen“. Darunter Regale für „Weiterspielen“, Favoriten, alle Spiele, Genres und Plattformen. Der Hintergrund nimmt die Farbe des Covers an.
-- **Regal-Ansicht.** Statt der Mediathek ein beleuchtetes Regal: Die Spiele stehen als 3D-Hüllen mit dem Rücken nach vorn, in Maßen und Farben ihrer Plattform (schwarze GameCube-Hülle, hellblaue Wii-U-Hülle, grüne Xbox-Hülle, N64-Karton). Beim Überfahren schiebt sich eine Hülle heraus, ein Klick zieht sie ganz aus dem Regal. Umschalten über den Knopf neben dem Zahnrad oder in den Einstellungen.
+- **Regal-Ansicht.** Statt der Mediathek ein beleuchtetes Regal: Die Spiele stehen als 3D-Hüllen im Regal, zu sehen ist nur der Rücken, in Maßen und Farben ihrer Plattform (schwarze GameCube-Hülle, hellblaue Wii-U-Hülle, grüne Xbox-Hülle, N64-Karton). Beim Überfahren gleitet eine Hülle heraus und kippt zur Seite, ein Klick zieht sie ganz aus dem Regal. Umschalten über den Knopf neben dem Zahnrad oder in den Einstellungen.
 - **Plattform-Filter.** Ein Klick auf „N64“, „GCN“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
 - **Artwork groß ansehen.** Ein Klick auf ein Cover holt das Spiel auf die Bühne und scrollt sanft nach oben.
 - **macOS-Widget.** Ein echtes Widget für Schreibtisch und Mitteilungszentrale (mittel und groß) mit den zuletzt gespielten Spielen. Ein Klick aufs Cover startet das Spiel. Installation: Einstellungen, „macOS-Widget“, „Installieren“. Der Launcher baut es dann mit Xcode und legt es unter `~/Applications/Spieleregal Widget.app` ab.
@@ -46,16 +46,22 @@
 
 ## Regal-Ansicht
 
-Die zweite Ansicht neben der Mediathek: ein beleuchtetes Regal, in dem die Spiele als 3D-Hüllen mit dem Rücken nach vorn stehen.
+Die zweite Ansicht neben der Mediathek: ein beleuchtetes Regal, in dem die Spiele als 3D-Hüllen stehen. Zu sehen ist zunächst nur der Rücken, wie in einem echten Regal.
 
 <p align="center">
-  <img src="docs/regal.png" alt="Regal-Ansicht mit Hüllen nach Plattform sortiert">
+  <img src="docs/regal.png" alt="Regal-Ansicht: Hüllen stehen mit dem Rücken nach vorn, nach Plattform sortiert">
 </p>
 
 - **Umschalten.** Knopf neben dem Zahnrad, Schalter „Regal-Ansicht“ in den Einstellungen oder ⌘2. Derselbe Weg führt zurück zur Mediathek, die Wahl bleibt gespeichert.
-- **Aufbau.** Die Spiele sind nach Plattform gruppiert und stehen auf Böden; ein Schildchen an der Kante nennt die Plattform. Auf jedem Rücken stehen Plattform und Titel, die Farbe kommt aus dem Cover.
+- **Aufbau.** Die Spiele sind nach Plattform gruppiert und gleichmäßig auf Böden verteilt; ein Schildchen an der Kante nennt die Plattform. Auf jedem Rücken stehen Plattform und Titel, das Motiv dahinter stammt aus dem Cover.
 - **Hüllen.** Jede Plattform hat eigene Maße und Farben: schwarze Hüllen für GameCube und PS2, hellblau für Wii U, grün für Xbox, weiß für Wii, flachere und dickere Kartons für N64 und Game Boy Advance.
-- **Herausziehen.** Beim Überfahren schiebt sich eine Hülle ein Stück heraus und dreht sich leicht. Ein Klick zieht sie aus dem Regal, dreht sie zur Front und stellt sie groß neben Titel, Beschreibung und „Spielen“. Esc oder ein Klick daneben schiebt sie zurück.
+- **Überfahren.** Die Hülle gleitet ein Stück aus dem Regal und kippt zur Seite, sodass ein Teil des Covers sichtbar wird. Die Nachbarn rücken dabei zur Seite.
+
+<p align="center">
+  <img src="docs/regal-hover.png" alt="Eine Hülle ist ein Stück herausgezogen und zur Seite gekippt">
+</p>
+
+- **Klick.** Die Hülle wird ganz herausgezogen, dreht sich zur Front und steht groß neben Titel, Beschreibung und „Spielen“. Esc oder ein Klick daneben schiebt sie zurück.
 - **Licht.** Die Leisten über den Böden nehmen die Farbe des Spiels an, über dem der Mauszeiger steht.
 - **Wie gewohnt.** Plattform-Filter, Suche, Pfeiltasten, Rechtsklick-Menü und Start-Animation funktionieren auch hier.
 

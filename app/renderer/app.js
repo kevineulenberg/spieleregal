@@ -418,6 +418,7 @@ function afterAdd(ids) {
 
 /* ---------- Zustand ---------- */
 function apply(state) {
+  if (!booted) return;
   S = state;
   if (view !== (S.settings.view === 'shelf' ? 'shelf' : 'rows')) { view = S.settings.view === 'shelf' ? 'shelf' : 'rows'; scroll.scrollTo({ top: 0, behavior: 'instant' }); }
   renderFilters();
@@ -430,4 +431,6 @@ function apply(state) {
 api.on('state', apply);
 api.on('toast', (m, err) => toast(m, err));
 api.on('cmd', async (c) => { if (c === 'add') { if (!sheet.open) $('#add').click(); } else if (c === 'search') qInput.focus(); else if (c === 'settings') openSettings(); });
-api.state().then(apply);
+// Erst starten, wenn auch shelf.js geladen ist – sonst bricht das erste Zeichnen ab und die Bühne bleibt leer
+let booted = false;
+addEventListener('DOMContentLoaded', () => { booted = true; api.state().then(apply); });
