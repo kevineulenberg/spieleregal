@@ -31,7 +31,8 @@
 | ![Filter auf Nintendo 64](docs/filter.png) | ![Detailfenster mit Cover-Suche](docs/details.png) |
 
 <p align="center">
-  <img src="docs/widget.png" alt="Widget mit den zuletzt gespielten Spielen">
+  <img src="docs/widget.png" alt="Schwebendes Widget-Fenster mit den zuletzt gespielten Spielen"><br>
+  <sub>Das schwebende Widget-Fenster. Das macOS-Widget zeigt dieselben Spiele im System-Look.</sub>
 </p>
 
 <p align="center">
@@ -41,6 +42,28 @@
 <p align="center">
   <img src="docs/start-animation.png" width="70%" alt="Start-Animation">
 </p>
+
+## macOS-Widget
+
+Ein echtes WidgetKit-Widget für Schreibtisch und Mitteilungszentrale, in mittlerer Größe mit vier und in großer mit acht Covern. Es liest dieselbe Bibliothek wie der Launcher und zeigt die zuletzt gespielten Spiele.
+
+**Installieren**
+
+1. Xcode installieren (macOS 14 oder neuer).
+2. Im Launcher die Einstellungen öffnen (⌘,) und bei „macOS-Widget“ auf „Installieren“ klicken. Der Bau dauert etwa eine Minute.
+3. Rechtsklick auf den Schreibtisch, „Widgets bearbeiten“, „Spieleregal“ suchen und ablegen.
+
+**Wie es funktioniert**
+
+| Teil | Aufgabe |
+| --- | --- |
+| `app/widget/Widget/` | Das Widget selbst (SwiftUI). Läuft in der Sandbox und darf nur die Bibliothek des Launchers lesen. |
+| `app/widget/Host/` | Kleines Trägerprogramm ohne Fenster. Nimmt Klicks aus dem Widget entgegen und reicht sie an den Launcher weiter. |
+| `app/widget/build.sh` | Baut beides mit `xcodebuild`, signiert mit einem vorhandenen „Apple Development“-Zertifikat (sonst lokal) und legt das Ergebnis unter `~/Applications/Spieleregal Widget.app` ab. |
+
+Ein Klick aufs Cover öffnet `spieleregal://launch/<id>`. Das Trägerprogramm macht daraus `spieleregal-launcher://…`, und der Launcher startet das Spiel, ohne sein Fenster zu zeigen. Ändert sich die Bibliothek, sagt der Launcher dem Widget Bescheid, damit es neu zeichnet.
+
+Ohne Xcode gibt es das schwebende Widget-Fenster als Ersatz.
 
 ## Cover-Quellen
 
