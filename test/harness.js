@@ -18,6 +18,8 @@ app.whenReady().then(async () => {
     await wait(s.wait || 600);
     if (s.shot) await shot(s.shot);
   }
+  // Widget-Fenster mit aufnehmen, falls offen
+  for (const w of BrowserWindow.getAllWindows()) if (w !== win) { await wait(600); fs.writeFileSync(path.join(out, 'widget.png'), (await w.webContents.capturePage()).toPNG()); }
   fs.writeFileSync(path.join(out, 'results.json'), JSON.stringify({ results, errors }, null, 2));
   app.exit(0);
 });

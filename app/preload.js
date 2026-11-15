@@ -14,6 +14,8 @@ contextBridge.exposeInMainWorld('api', {
   fetchMissing: call('fetchMissing'),
   setSettings: call('setSettings'),
   reveal: call('reveal'),
+  showMain: call('showMain'),
+  hideWidget: call('hideWidget'),
   openExternal: call('openExternal'),
   pathFor: (file) => webUtils.getPathForFile(file),
   on: (ch, fn) => ipcRenderer.on(ch, (_e, ...a) => fn(...a)),

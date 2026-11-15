@@ -233,7 +233,7 @@ sheet.addEventListener('click', async (e) => {
     if (b.dataset.sure) { const t = game(id).title; sheetId = null; sheet.close(); await api.remove(id); toast(`„${t}“ aus dem Regal genommen`); }
     else { b.dataset.sure = 1; b.textContent = 'Wirklich entfernen? Das Spiel selbst bleibt erhalten'; setTimeout(() => { if (b.isConnected) { delete b.dataset.sure; b.textContent = 'Aus dem Regal nehmen'; } }, 4000); }
   }
-  else if (act === 'save-settings') { await api.setSettings({ sgdbKey: $('#s-key').value.trim() }); sheet.close(); toast('Einstellungen gespeichert'); }
+  else if (act === 'save-settings') { await api.setSettings({ sgdbKey: $('#s-key').value.trim(), widget: $('#s-widget').checked, openAtLogin: $('#s-login').checked, folders: $('#s-folders').value.split('\n').map((s) => s.trim()).filter(Boolean) }); sheet.close(); toast('Einstellungen gespeichert'); }
   else if (act === 'fetch-missing') { const b = e.target.closest('button'); b.disabled = true; b.innerHTML = '<i class="spinner"></i>Lade Cover'; const n = await api.fetchMissing(); b.disabled = false; b.textContent = 'Fehlende Cover jetzt laden'; toast(n ? `${n} Cover geladen` : 'Keine neuen Cover gefunden'); }
   else if (act === 'link') api.openExternal(e.target.closest('[data-href]').dataset.href);
 });
@@ -250,6 +250,10 @@ function openSettings() {
   <div class="sheet-body"><div class="form" style="grid-template-columns:1fr">
     ${field('SteamGridDB-Schlüssel', `<input id="s-key" type="password" value="${esc(S.settings.sgdbKey || '')}" placeholder="Optional">`)}
     <p class="hint">Neue Spiele bekommen ihr Cover automatisch aus libretro-Boxarts, Steam und Wikipedia. SteamGridDB hat die größte Auswahl an hochauflösenden Covern, braucht aber einen kostenlosen Schlüssel: <a data-act="link" data-href="https://www.steamgriddb.com/profile/preferences/api">steamgriddb.com öffnen</a>, anmelden und den API-Schlüssel hier einfügen.</p>
+    <label class="check"><input type="checkbox" id="s-widget"${S.settings.widget ? ' checked' : ''}><span>Widget auf dem Schreibtisch zeigen<small>Breites Fenster mit den zuletzt gespielten Spielen. Bleibt offen, auch wenn die Bibliothek geschlossen ist.</small></span></label>
+    <label class="check"><input type="checkbox" id="s-login"${S.settings.openAtLogin ? ' checked' : ''}><span>Beim Anmelden starten<small>Mit aktivem Widget erscheint dann nur das Widget.</small></span></label>
+    ${field('Spiele-Ordner, einer pro Zeile', `<textarea id="s-folders" rows="2" spellcheck="false">${esc((S.settings.folders || []).join('\n'))}</textarea>`)}
+    <p class="hint">Wird ein Spiel verschoben, sucht der Launcher es in diesen Ordnern unter demselben Namen und ordnet es neu zu.</p>
     <div><button class="btn ghost" data-act="fetch-missing">Fehlende Cover jetzt laden</button> <span class="hint">${missing ? `${missing} Spiele ohne Cover` : 'Alle Spiele haben ein Cover'}</span></div>
     <p class="hint">Bedienung: Pfeiltasten wählen, Eingabe startet, Leertaste öffnet Details, F markiert als Favorit. Ein Gamepad funktioniert ebenfalls.</p>
   </div></div>

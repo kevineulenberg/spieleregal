@@ -18,6 +18,8 @@
 - **Bühne und Regale.** Das gewählte Spiel steht groß oben, mit 3D-Cover, Beschreibung und „Spielen“. Darunter Regale für „Weiterspielen“, Favoriten, alle Spiele, Genres und Plattformen. Der Hintergrund nimmt die Farbe des Covers an.
 - **Plattform-Filter.** Ein Klick auf „Nintendo 64“, „GameCube“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
 - **Artwork groß ansehen.** Ein Klick auf ein Cover holt das Spiel auf die Bühne und scrollt sanft nach oben.
+- **Widget.** Ein breites Fenster für den Schreibtisch zeigt die zuletzt gespielten Spiele. Ein Klick aufs Cover startet das Spiel, „Bibliothek öffnen“ holt den Launcher nach vorn. Ein- und ausschalten in den Einstellungen oder mit ⇧⌘W.
+- **Verschobene Spiele.** Liegt ein Spiel nicht mehr am alten Ort, sucht der Launcher es unter demselben Namen in den eingestellten Spiele-Ordnern.
 - **Starten.** Per „Spielen“, Doppelklick oder Eingabetaste. Apps, Ordner und Startdateien funktionieren; bei Ordnern sucht der Launcher die App darin.
 - **Spiele hinzufügen.** Über „Spiel hinzufügen“ oder per Ziehen ins Fenster. Cover und App-Icon werden automatisch geholt.
 - **Cover und Icons.** Suche über mehrere Quellen, eigenes Bild hochladen oder hineinziehen, Icon austauschen.
@@ -26,6 +28,10 @@
 | Plattform-Filter | Details und Cover-Suche |
 | --- | --- |
 | ![Filter auf Nintendo 64](docs/filter.png) | ![Detailfenster mit Cover-Suche](docs/details.png) |
+
+<p align="center">
+  <img src="docs/widget.png" alt="Widget mit den zuletzt gespielten Spielen">
+</p>
 
 <p align="center">
   <img src="docs/regale.png" alt="Regale nach Genre">
@@ -75,7 +81,7 @@ app/
   main.js        Bibliothek, Spielstart, Icons aus .app-Bündeln
   covers.js      Cover-Quellen und Trefferbewertung
   preload.js     Brücke zwischen Oberfläche und Hauptprozess
-  renderer/      Oberfläche (HTML, CSS, JavaScript ohne Framework)
+  renderer/      Oberfläche und Widget (HTML, CSS, JavaScript ohne Framework)
   seed/          Startbibliothek mit Covern
 scripts/build.sh Baut die Mac-App
 test/harness.js  Testlauf mit Screenshots

@@ -1,0 +1,32 @@
+@font-face { font-family: 'Bricolage'; src: url(fonts/bricolage.woff2) format('woff2'); font-weight: 400 800; font-stretch: 75% 100%; font-display: block; }
+@font-face { font-family: 'Instrument'; src: url(fonts/instrument.woff2) format('woff2'); font-weight: 400 700; font-display: block; }
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; background: transparent; overflow: hidden; -webkit-user-select: none; user-select: none; cursor: default; font-family: 'Instrument', -apple-system, system-ui, sans-serif; color: #f4efe7; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: default; }
+:focus-visible { outline: 2px solid hsl(var(--h, 268) 90% 74%); outline-offset: 2px; }
+.w { position: absolute; inset: 0; border-radius: 26px; overflow: hidden; display: flex; align-items: stretch; background: #120e1c; box-shadow: 0 0 0 1px rgba(255,255,255,.1) inset; -webkit-app-region: drag; }
+.glow { position: absolute; inset: -30%; background-size: cover; background-position: center; filter: blur(50px) saturate(1.5) brightness(.6); opacity: .75; transition: background-image .6s; }
+.w::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(13,10,20,.9) 0%, rgba(13,10,20,.55) 30%, rgba(13,10,20,.25)); pointer-events: none; }
+.side { position: relative; z-index: 1; width: 196px; flex: none; padding: 22px 0 20px 24px; display: flex; flex-direction: column; align-items: flex-start; }
+.logo { width: 44px; height: 44px; margin: -4px 0 10px -4px; }
+.side strong { font: 800 23px/1 'Bricolage'; font-stretch: 78%; letter-spacing: -.02em; }
+.side span { margin-top: 5px; font-size: 13px; color: #b9b2c6; }
+.open { margin-top: auto; height: 34px; padding: 0 15px; border-radius: 17px; background: #f4efe7; color: #0d0a14; font-weight: 700; font-size: 13.5px; -webkit-app-region: no-drag; transition: transform .2s cubic-bezier(.34,1.45,.55,1), box-shadow .3s; box-shadow: 0 6px 22px -8px hsl(var(--h, 268) 90% 70%); }
+.open:hover { transform: scale(1.06); } .open:active { transform: scale(.96); }
+.games { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; padding: 0 26px 0 14px; justify-content: flex-start; }
+.g { position: relative; flex: none; height: 164px; width: calc(164px * var(--r, .7)); border-radius: 10px; overflow: hidden; background: #262033; -webkit-app-region: no-drag; box-shadow: 0 12px 26px -12px #000, 0 0 0 1px rgba(255,255,255,.08) inset; transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .3s; animation: in .5s cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i) * 50ms); }
+@keyframes in { from { opacity: 0; transform: translateY(14px) scale(.94); } }
+.g img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.g:hover { transform: translateY(-5px) scale(1.06); z-index: 2; box-shadow: 0 22px 36px -14px #000, 0 0 40px -10px hsl(var(--ch) 80% 60% / .8); }
+.g:active { transform: scale(.97); }
+.g .play { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(13,10,20,.35); opacity: 0; transition: opacity .2s; }
+.g .play i { width: 46px; height: 46px; border-radius: 50%; background: #f4efe7; color: #0d0a14; display: grid; place-items: center; transform: scale(.6); transition: transform .3s cubic-bezier(.34,1.45,.55,1); }
+.g:hover .play { opacity: 1; } .g:hover .play i { transform: none; }
+.g.busy .play { opacity: 1; } .g.busy .play i { animation: pulse .9s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.2); } }
+.g .ph { position: absolute; inset: 0; padding: 10px; display: flex; align-items: flex-end; font: 800 17px/.95 'Bricolage'; font-stretch: 76%; background: linear-gradient(160deg, hsl(var(--ch) 55% 34%), hsl(calc(var(--ch) + 50) 60% 14%)); overflow-wrap: anywhere; }
+.empty { color: #b9b2c6; font-size: 14px; max-width: 30ch; text-align: right; line-height: 1.45; }
+.x { position: absolute; z-index: 3; top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: rgba(13,10,20,.6); color: #d9d3e2; opacity: 0; transition: opacity .2s; -webkit-app-region: no-drag; }
+.w:hover .x { opacity: 1; } .x:hover { background: rgba(13,10,20,.9); }
+.msg { position: absolute; z-index: 4; left: 24px; right: 24px; bottom: 14px; padding: 8px 12px; border-radius: 10px; background: #ffd9d4; color: #0d0a14; font-size: 12.5px; font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .01s !important; transition-duration: .01s !important; } }

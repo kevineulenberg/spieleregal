@@ -8,8 +8,9 @@ const { pathToFileURL } = require('url');
 const covers = require('./covers');
 
 app.setName('Game Launcher');
+if (!app.requestSingleInstanceLock()) app.quit();
 const isMac = process.platform === 'darwin';
-let win, lib, dirs;
+let win, widget, lib, dirs;
 
 const expand = (p) => (p && p.startsWith('~/') ? path.join(os.homedir(), p.slice(2)) : p);
 const run = (cmd, args) => new Promise((res) => execFile(cmd, args, { timeout: 20000, maxBuffer: 8e6 }, (err, out) => res(err ? null : out)));
@@ -41,7 +42,7 @@ function load() {
     try { lib = JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { fs.copyFileSync(file, file + '.defekt'); }
   }
   if (!lib) {
-    lib = { version: 1, settings: { sgdbKey: '' }, games: [] };
+    lib = { version: 2, settings: { sgdbKey: '' }, games: [] };
     const seedDir = path.join(__dirname, 'seed');
     for (const g of JSON.parse(fs.readFileSync(path.join(seedDir, 'seed.json'), 'utf8'))) {
       const game = { ...g, path: expand(g.path), addedAt: Date.now(), favorite: false, playCount: 0, lastPlayed: 0 };
@@ -55,6 +56,22 @@ function load() {
     }
     save();
   }
+  lib.settings.folders = lib.settings.folders || ['~/Documents/Games/Games Shortcuts', '~/Desktop'];
+  if (relink()) save();
+}
+
+// Verschobene Spiele wiederfinden: gleicher Dateiname in einem der Spiele-Ordner
+function relink() {
+  let changed = false;
+  for (const g of lib.games) {
+    if (exists(g.path)) continue;
+    const base = path.basename(g.path);
+    for (const dir of lib.settings.folders || []) {
+      const hit = [base, base + '.app', base.replace(/\.app$/, '')].map((n) => path.join(expand(dir), n)).find(exists);
+      if (hit) { log('Neu zugeordnet', g.title, hit); g.path = hit; delete g.target; changed = true; break; }
+    }
+  }
+  return changed;
 }
 
 // Leitfarbe und Seitenverhältnis eines Covers
@@ -80,9 +97,10 @@ const fileUrl = (p) => (p && exists(p) ? pathToFileURL(p).href + '?v=' + Math.ro
 function view(g) {
   return { ...g, coverUrl: fileUrl(g.cover), iconUrl: fileUrl(g.icon), missing: !exists(g.path) };
 }
-const state = () => ({ games: lib.games.map(view), settings: lib.settings, platforms: covers.PLATFORMS });
+const state = () => ({ games: lib.games.map(view), settings: { ...lib.settings, openAtLogin: isMac ? app.getLoginItemSettings().openAtLogin : false }, platforms: covers.PLATFORMS });
 const find = (id) => lib.games.find((g) => g.id === id);
-const push = () => win && !win.isDestroyed() && win.webContents.send('state', state());
+const alive = (w) => w && !w.isDestroyed();
+const push = () => { const s = state(); for (const w of [win, widget]) if (alive(w)) w.webContents.send('state', s); };
 
 /* ---------- Startdatei finden ---------- */
 async function scanApps(dir, depth = 0, out = []) {
@@ -198,6 +216,7 @@ const handlers = {
   async launch(id) {
     const g = find(id);
     if (!g) return { ok: false, error: 'Spiel nicht gefunden' };
+    if (!exists(g.path) && relink()) save();
     log('Start angefragt', g.title, g.path);
     const target = await resolveTarget(g);
     log('Ziel', target);
@@ -244,7 +263,15 @@ const handlers = {
     for (const g of lib.games.filter((x) => !x.cover || !exists(x.cover))) { if (await autoCover(g).catch(() => false)) n++; save(); push(); }
     return n;
   },
-  setSettings(patch) { Object.assign(lib.settings, patch); save(); push(); },
+  setSettings(patch) {
+    if ('openAtLogin' in patch) { if (isMac) app.setLoginItemSettings({ openAtLogin: !!patch.openAtLogin }); delete patch.openAtLogin; }
+    Object.assign(lib.settings, patch); save();
+    if ('widget' in patch) toggleWidget(lib.settings.widget);
+    if ('folders' in patch && relink()) save();
+    push(); buildMenu();
+  },
+  showMain() { if (alive(win)) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } else createWindow(); if (isMac) app.focus({ steal: true }); },
+  hideWidget() { handlers.setSettings({ widget: false }); },
   reveal(id) { const g = find(id); if (g && exists(g.path)) shell.showItemInFolder(g.path); },
   openExternal(url) { if (/^https:\/\//.test(url)) shell.openExternal(url); },
 };
@@ -257,25 +284,57 @@ function createWindow() {
   });
   win.loadFile(path.join(__dirname, 'renderer', 'index.html'));
   win.once('ready-to-show', () => win.show());
+  win.on('closed', () => { win = null; });
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
   win.webContents.on('will-navigate', (e) => e.preventDefault());
   win.webContents.on('console-message', (e) => { if (e.level === 'error' || e.level === 3) log('Renderer', e.message); });
 }
 
+/* ---------- Widget: breites Schreibtisch-Fenster mit den zuletzt gespielten Spielen ---------- */
+function toggleWidget(on) {
+  if (!on) { if (alive(widget)) widget.destroy(); widget = null; return; }
+  if (alive(widget)) { widget.show(); return; }
+  const { screen } = require('electron');
+  const W = 920, H = 232, area = screen.getPrimaryDisplay().workArea;
+  let [x, y] = lib.settings.widgetPos || [area.x + area.width - W - 24, area.y + area.height - H - 24];
+  const onScreen = screen.getAllDisplays().some((d) => x + 80 > d.workArea.x && x < d.workArea.x + d.workArea.width - 80 && y >= d.workArea.y - 10 && y < d.workArea.y + d.workArea.height - 40);
+  if (!onScreen) [x, y] = [area.x + area.width - W - 24, area.y + area.height - H - 24];
+  widget = new BrowserWindow({
+    width: W, height: H, x, y, frame: false, transparent: true, resizable: false, maximizable: false, minimizable: false, fullscreenable: false,
+    hasShadow: true, skipTaskbar: true, show: false, backgroundColor: '#00000000',
+    webPreferences: { preload: path.join(__dirname, 'preload.js'), contextIsolation: true, sandbox: false },
+  });
+  if (isMac) widget.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: false });
+  widget.loadFile(path.join(__dirname, 'renderer', 'widget.html'));
+  widget.once('ready-to-show', () => widget.showInactive());
+  widget.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  widget.webContents.on('will-navigate', (e) => e.preventDefault());
+  let t; widget.on('moved', () => { clearTimeout(t); t = setTimeout(() => { if (alive(widget)) { lib.settings.widgetPos = widget.getPosition(); save(); } }, 400); });
+  widget.on('closed', () => { widget = null; });
+}
+
+function buildMenu() {
+  if (!isMac) return;
+  const send = (c) => { handlers.showMain(); setTimeout(() => alive(win) && win.webContents.send('cmd', c), alive(win) ? 0 : 900); };
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    { label: 'Game Launcher', submenu: [{ role: 'about', label: 'Über Game Launcher' }, { type: 'separator' }, { role: 'hide', label: 'Ausblenden' }, { role: 'hideOthers', label: 'Andere ausblenden' }, { type: 'separator' }, { role: 'quit', label: 'Beenden' }] },
+    { label: 'Bibliothek', submenu: [{ label: 'Spiel hinzufügen …', accelerator: 'Cmd+N', click: () => send('add') }, { label: 'Suchen', accelerator: 'Cmd+F', click: () => send('search') }, { label: 'Einstellungen …', accelerator: 'Cmd+,', click: () => send('settings') }] },
+    { label: 'Bearbeiten', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
+    { label: 'Fenster', submenu: [{ label: 'Bibliothek zeigen', accelerator: 'Cmd+1', click: () => handlers.showMain() }, { label: 'Widget zeigen', type: 'checkbox', checked: !!lib.settings.widget, accelerator: 'Cmd+Shift+W', click: (i) => handlers.setSettings({ widget: i.checked }) }, { type: 'separator' }, { role: 'minimize' }, { role: 'close' }, { role: 'togglefullscreen' }, { role: 'reload' }, { role: 'toggleDevTools' }] },
+  ]));
+}
+
 app.whenReady().then(async () => {
   load();
   for (const [name, fn] of Object.entries(handlers)) ipcMain.handle(name, (_e, ...a) => fn(...a));
-  if (isMac) {
-    Menu.setApplicationMenu(Menu.buildFromTemplate([
-      { label: 'Game Launcher', submenu: [{ role: 'about', label: 'Über Game Launcher' }, { type: 'separator' }, { role: 'hide', label: 'Ausblenden' }, { role: 'hideOthers', label: 'Andere ausblenden' }, { type: 'separator' }, { role: 'quit', label: 'Beenden' }] },
-      { label: 'Bibliothek', submenu: [{ label: 'Spiel hinzufügen …', accelerator: 'Cmd+N', click: () => win && win.webContents.send('cmd', 'add') }, { label: 'Suchen', accelerator: 'Cmd+F', click: () => win && win.webContents.send('cmd', 'search') }, { label: 'Einstellungen …', accelerator: 'Cmd+,', click: () => win && win.webContents.send('cmd', 'settings') }] },
-      { label: 'Bearbeiten', submenu: [{ role: 'undo' }, { role: 'redo' }, { type: 'separator' }, { role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { role: 'selectAll' }] },
-      { label: 'Fenster', submenu: [{ role: 'minimize' }, { role: 'togglefullscreen' }, { role: 'reload' }, { role: 'toggleDevTools' }] },
-    ]));
-  }
-  createWindow();
+  buildMenu();
+  if (lib.settings.widget) toggleWidget(true);
+  // Beim Anmelden mit aktivem Widget nur das Widget zeigen
+  const atLogin = isMac && app.getLoginItemSettings().wasOpenedAtLogin;
+  if (!(atLogin && lib.settings.widget)) createWindow();
   // Icons der vorhandenen Apps einmalig nachladen
   (async () => { let ch = false; for (const g of lib.games) if (!g.icon) { try { await extractIcon(g); if (g.icon) ch = true; } catch {} } if (ch) { save(); push(); } })();
-  app.on('activate', () => { if (!BrowserWindow.getAllWindows().length) createWindow(); });
+  app.on('activate', () => handlers.showMain());
 });
 app.on('window-all-closed', () => app.quit());
+app.on('second-instance', () => handlers.showMain());
