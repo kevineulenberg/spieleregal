@@ -151,6 +151,12 @@ function setFeatured(id, force) {
     box.classList.toggle('empty', !g.coverUrl); img.hidden = !g.coverUrl;
     if (g.coverUrl) img.src = g.coverUrl;
     box.style.background = g.coverUrl ? '' : `linear-gradient(160deg, hsl(${hue(g)} 55% 34%), hsl(${hue(g) + 50} 60% 14%))`;
+    // Kante passend zur Hülle: Kunststofffarbe und Tiefe der Plattform, Karton in Covertönen
+    const spec = (typeof CASES !== 'undefined' && CASES[g.platform]) || { kind: 'dvd', h: 1, d: 0.074, plastic: '#141418' };
+    const bh = box.getBoundingClientRect().height || 400;
+    box.style.setProperty('--edge', Math.round(bh * spec.d / spec.h * (spec.kind === 'dvd' ? 1.3 : 1)) + 'px');
+    box.style.setProperty('--plastic', spec.plastic || '#141418');
+    box.classList.toggle('box-card', spec.kind === 'box');
     box.classList.remove('flip'); void box.offsetWidth; box.classList.add('flip');
     const [a, b] = $$('.backdrop'); const on = backdropFlip ? a : b, off = backdropFlip ? b : a; backdropFlip = !backdropFlip;
     on.style.backgroundImage = g.coverUrl ? `url("${g.coverUrl}")` : 'none'; on.classList.add('on'); off.classList.remove('on');

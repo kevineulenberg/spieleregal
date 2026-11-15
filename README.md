@@ -54,14 +54,14 @@ Die zweite Ansicht neben der Mediathek: ein beleuchtetes Regal, in dem die Spiel
 
 - **Umschalten.** Knopf neben dem Zahnrad, Schalter „Regal-Ansicht“ in den Einstellungen oder ⌘2. Derselbe Weg führt zurück zur Mediathek, die Wahl bleibt gespeichert.
 - **Aufbau.** Die Spiele sind nach Plattform gruppiert und gleichmäßig auf Böden verteilt; ein Schildchen an der Kante nennt die Plattform. Auf jedem Rücken stehen Plattform und Titel, das Motiv dahinter stammt aus dem Cover.
-- **Hüllen.** Jede Plattform hat eigene Maße und Farben: schwarze Hüllen für GameCube und PS2, hellblau für Wii U, grün für Xbox, weiß für Wii, flachere und dickere Kartons für N64 und Game Boy Advance.
-- **Überfahren.** Die Hülle gleitet ein Stück aus dem Regal und kippt zur Seite, sodass ein Teil des Covers sichtbar wird. Die Nachbarn rücken dabei zur Seite.
+- **Hüllen.** Maße und Farben folgen den echten Verpackungen: schmale Kunststoffhüllen (14 mm Rücken) für GameCube, PS2, Wii U, Xbox und Xbox 360, jeweils mit Kopfband in der Plattformfarbe; niedrigere, tiefere Kartons für N64 und Game Boy Advance.
+- **Überfahren.** Die Hülle gleitet erst ein Stück aus dem Regal und kippt dann zur Seite, sodass ein Teil des Covers sichtbar wird. Die Nachbarn rücken sanft zur Seite; beim Verlassen läuft alles rückwärts.
 
 <p align="center">
   <img src="docs/regal-hover.png" alt="Eine Hülle ist ein Stück herausgezogen und zur Seite gekippt">
 </p>
 
-- **Klick.** Die Hülle wird ganz herausgezogen, dreht sich zur Front und steht groß neben Titel, Beschreibung und „Spielen“. Esc oder ein Klick daneben schiebt sie zurück.
+- **Klick.** Die Hülle wird ganz herausgezogen und dreht sich zur Front, der Rücken bleibt als Kante sichtbar. Sie steht groß neben Titel, Beschreibung und „Spielen“. Esc oder ein Klick daneben schiebt sie zurück.
 - **Licht.** Die Leisten über den Böden nehmen die Farbe des Spiels an, über dem der Mauszeiger steht.
 - **Wie gewohnt.** Plattform-Filter, Suche, Pfeiltasten, Rechtsklick-Menü und Start-Animation funktionieren auch hier.
 

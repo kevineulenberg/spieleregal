@@ -78,10 +78,15 @@ h1.long { font-size: clamp(34px, 4.2vw, 58px); }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(6px); } }
 
 .hero-art { perspective: 1400px; height: 100%; display: grid; place-items: center; padding: 0 clamp(0px, 3vw, 60px) 36px 0; }
-.box { --rx: 4deg; --ry: -20deg; position: relative; height: min(46vh, 430px); max-width: 44vw; transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d; transition: transform .5s var(--ease); border-radius: 6px 10px 10px 6px;
+.box { --rx: 4deg; --ry: -20deg; position: relative; height: min(46vh, 430px); max-width: 44vw; transform: rotateX(var(--rx)) rotateY(var(--ry)); transform-style: preserve-3d; transition: transform .5s var(--ease); border-radius: 5px;
   box-shadow: -1px 0 0 rgba(255,255,255,.25) inset, 30px 40px 70px -20px rgba(0,0,0,.75), 0 0 90px -20px var(--amb); }
 .box img { display: block; height: 100%; max-width: 44vw; object-fit: cover; border-radius: inherit; }
-.box::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 14px; background: linear-gradient(90deg, rgba(0,0,0,.45), rgba(255,255,255,.18) 40%, rgba(0,0,0,.2)); border-radius: 6px 0 0 6px; z-index: 1; }
+.box { --edge: 26px; --plastic: #141418; }
+/* Rechte Kante der Hülle als echte 3D-Fläche statt eines aufgemalten Knicks */
+.box::before { content: ''; position: absolute; top: 2px; bottom: 2px; left: calc(100% - 1px); width: var(--edge); transform-origin: left center; transform: rotateY(90deg);
+  background: linear-gradient(90deg, color-mix(in oklab, var(--plastic) 70%, #fff) 0, var(--plastic) 18%, color-mix(in oklab, var(--plastic) 85%, #000) 80%, color-mix(in oklab, var(--plastic) 60%, #000));
+  border-radius: 0 4px 4px 0; }
+.box.box-card::before { background: linear-gradient(90deg, hsl(var(--h) 40% 40%), hsl(var(--h) 45% 24%)); }
 .box .shine { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.22) 46%, transparent 58%); background-size: 250% 100%; background-position: var(--sx, 30%) 0; mix-blend-mode: screen; }
 .box.flip { animation: flip .7s var(--ease); }
 @keyframes flip { 0% { transform: rotateX(var(--rx)) rotateY(calc(var(--ry) + 80deg)) translateX(60px); opacity: 0; } 100% { opacity: 1; } }

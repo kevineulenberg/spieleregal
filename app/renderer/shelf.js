@@ -1,28 +1,32 @@
 /* Spieleregal – Regal-Ansicht: Hüllen stehen mit dem Rücken nach vorn und lassen sich herausziehen */
-const DVD = { kind: 'dvd', h: 1, d: 0.078, plastic: '#17171b', ink: '#fff' };
-const BOX = { kind: 'box', h: 0.66, d: 0.155 };
-// Maße relativ zur DVD-Hülle (19 cm hoch); Farben wie die echten Hüllen der jeweiligen Plattform
+// Maße relativ zur Höhe einer DVD-Hülle (19 cm), nach den echten Verpackungen:
+// Kunststoffhüllen 14 mm Rücken, N64-Karton 13,3 cm hoch und 3,3 cm tief, GBA-Karton 12,7 cm hoch und 2,5 cm tief
+const DVD = { kind: 'dvd', h: 1, d: 0.074, plastic: '#141418', ink: '#fff' };
+const BOX = { kind: 'box', h: 0.7, d: 0.174 };
+// Farben der Hüllen und des Kopfbands auf dem Rücken, wie bei den Originalen
 const CASES = {
-  'Nintendo 64': BOX, 'SNES': BOX, 'NES': { kind: 'box', h: 0.93, d: 0.1 }, 'Mega Drive': { ...DVD, h: 0.93, d: 0.12 },
-  'Game Boy': { kind: 'box', h: 0.66, d: 0.115 }, 'Game Boy Color': { kind: 'box', h: 0.66, d: 0.115 }, 'Game Boy Advance': { kind: 'box', h: 0.68, d: 0.115 },
+  'Nintendo 64': BOX, 'SNES': { kind: 'box', h: 0.7, d: 0.2 }, 'NES': { kind: 'box', h: 0.97, d: 0.14 }, 'Mega Drive': { ...DVD, h: 0.98, d: 0.12 },
+  'Game Boy': { kind: 'box', h: 0.67, d: 0.13 }, 'Game Boy Color': { kind: 'box', h: 0.67, d: 0.13 }, 'Game Boy Advance': { kind: 'box', h: 0.67, d: 0.13 },
   'Nintendo DS': { ...DVD, h: 0.66, d: 0.08 }, 'Nintendo 3DS': { ...DVD, h: 0.66, d: 0.07, plastic: '#eceef1', ink: '#23232a' },
-  'GameCube': DVD, 'Wii': { ...DVD, plastic: '#eef0f3', ink: '#23232a' }, 'Wii U': { ...DVD, plastic: '#2f9fdc' },
-  'PlayStation': { ...DVD, h: 0.66, d: 0.056, plastic: '#2b2b33' }, 'PlayStation 2': DVD, 'PlayStation 3': { ...DVD, h: 0.9, plastic: '#cfd5dc', ink: '#23232a' }, 'PSP': { ...DVD, h: 0.9, d: 0.07, plastic: '#d5dae0', ink: '#23232a' },
-  'Xbox': { ...DVD, plastic: '#3c8c2b' }, 'Xbox 360': { ...DVD, plastic: '#86c552', ink: '#17250c' },
-  'Dreamcast': { ...DVD, h: 0.66, d: 0.056, plastic: '#e9ebee', ink: '#23232a' }, 'Saturn': { ...DVD, h: 0.93, d: 0.09 },
+  'GameCube': { ...DVD, band: '#0b0b0e' }, 'Wii': { ...DVD, plastic: '#f1f2f4', ink: '#1d1d22', band: '#f1f2f4' }, 'Wii U': { ...DVD, plastic: '#2b9ad6', band: '#2b9ad6' },
+  'PlayStation': { ...DVD, h: 0.66, d: 0.056, plastic: '#2b2b33' }, 'PlayStation 2': { ...DVD, band: '#0b0b0e' }, 'PlayStation 3': { ...DVD, h: 0.9, plastic: '#cfd5dc', ink: '#23232a' }, 'PSP': { ...DVD, h: 0.9, d: 0.07, plastic: '#d5dae0', ink: '#23232a' },
+  'Xbox': { ...DVD, plastic: '#2f7a22', band: '#121212', ink: '#7bd24a' }, 'Xbox 360': { ...DVD, plastic: '#e8eaec', band: '#5fae2e', ink: '#fff' },
+  'Dreamcast': { ...DVD, h: 0.66, d: 0.056, plastic: '#e9ebee', ink: '#23232a' }, 'Saturn': { ...DVD, h: 0.98, d: 0.09 },
 };
+// Angehobene Hülle: wie weit sie herauskommt und wie stark sie kippt
+const HOVER_Z = 110, HOVER_A = 52;
 let pulled = null;
 
 function caseSpec(g, H) {
   const c = CASES[g.platform] || DVD;
   const h = Math.round(H * c.h), ratio = g.coverUrl ? Math.min(1.5, Math.max(0.62, g.ratio || 0.71)) : 0.71;
-  // Rücken etwas kräftiger als maßstabsgetreu, damit Titel und Motiv lesbar bleiben
-  const w = Math.round(h * ratio), d = Math.round(H * c.d * 1.6);
+  // Kunststoffrücken minimal breiter als echt, damit der Titel lesbar bleibt; Kartons maßstabsgetreu
+  const w = Math.round(h * ratio), d = Math.round(Math.max(H * c.d * (c.kind === 'dvd' ? 1.25 : 1), 22));
   return { ...c, h, w, d, slot: d + 2 };
 }
 function caseHtml(g, s) {
   const art = g.coverUrl ? `<img src="${esc(g.coverUrl)}" alt="" draggable="false">` : `<div class="ph"><b>${esc(g.title)}</b></div>`;
-  return `<div class="case ${s.kind}${g.coverUrl ? ' art' : ''}" style="--w:${s.w}px;--h:${s.h}px;--d:${s.d}px;--ch:${hue(g)};--plastic:${s.plastic || '#111'};--ink:${s.ink || '#fff'}${g.coverUrl ? `;--art:url('${g.coverUrl.replace(/'/g, '%27')}')` : ''}">
+  return `<div class="case ${s.kind}${g.coverUrl ? ' art' : ''}" style="--w:${s.w}px;--h:${s.h}px;--d:${s.d}px;--ch:${hue(g)};--plastic:${s.plastic || '#111'};--band:${s.band || s.plastic || 'rgba(0,0,0,.55)'};--ink:${s.ink || '#fff'}${g.coverUrl ? `;--art:url('${g.coverUrl.replace(/'/g, '%27')}')` : ''}">
     <div class="sway"><div class="front">${art}<i class="gloss"></i></div>
     <div class="spine"><span class="plat">${esc(SHORT[g.platform] || g.platform || '')}</span><span class="ttl">${esc(g.title)}</span></div>
     <div class="top"></div></div></div>`;
@@ -86,9 +90,9 @@ function pullOut(id) {
   $('#p-fav').classList.toggle('on', !!g.favorite);
   pullEl.hidden = false; void pullEl.offsetWidth; pullEl.classList.add('on');
   const anim = c.animate([
-    { transform: T(sx, sy, 0, 90, 1), offset: 0 },
-    { transform: T(sx, sy - 4, 190, 66, 1), offset: 0.34, easing: 'cubic-bezier(.3,0,.2,1)' },
-    { transform: T(tx, ty, 0, -14, scale), offset: 1 },
+    { transform: T(sx, sy, HOVER_Z, HOVER_A, 1), offset: 0 },
+    { transform: T(sx, sy - 6, 210, 44, 1), offset: 0.3, easing: 'cubic-bezier(.3,0,.2,1)' },
+    { transform: T(tx, ty, 0, 18, scale), offset: 1 },
   ], { duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1000, easing: 'cubic-bezier(.5,0,.3,1)', fill: 'forwards' });
   anim.finished.then(() => { if (pulled === id) c.classList.add('idle'); }).catch(() => {});
   pullEl._back = { sx, sy, tx, ty, scale, T, slot, c };
@@ -98,8 +102,8 @@ function pushBack(then) {
   const b = pullEl._back; if (!pulled || !b) return;
   b.c.classList.remove('idle'); pullEl.classList.remove('on');
   const anim = b.c.animate([
-    { transform: b.T(b.tx, b.ty, 0, -14, b.scale), offset: 0 },
-    { transform: b.T(b.sx, b.sy - 4, 190, 66, 1), offset: 0.66 },
+    { transform: b.T(b.tx, b.ty, 0, 18, b.scale), offset: 0 },
+    { transform: b.T(b.sx, b.sy - 6, 210, 52, 1), offset: 0.62 },
     { transform: b.T(b.sx, b.sy, 0, 90, 1), offset: 1 },
   ], { duration: matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 620, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' });
   const id = pulled;
