@@ -96,7 +96,7 @@ Das Skript lädt Electron, legt `app/` hinein und setzt Name und Icon. Das Ergeb
 
 | Aktion | Maus | Tastatur | Gamepad |
 | --- | --- | --- | --- |
-| Ansicht wechseln (Mediathek, Regal) | Knopf neben dem Zahnrad | | |
+| Ansicht wechseln (Mediathek, Regal) | Knopf neben dem Zahnrad | ⌘2 | |
 | Spiel wählen und groß ansehen | Klick aufs Cover | Pfeiltasten | Steuerkreuz, Stick |
 | Spielen | Doppelklick, Play-Knopf | Eingabe | A |
 | Details | „Details“, Rechtsklick | Leertaste | Y |
