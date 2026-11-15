@@ -16,7 +16,7 @@
 ## Was es kann
 
 - **Bühne und Regale.** Das gewählte Spiel steht groß oben, mit 3D-Cover, Beschreibung und „Spielen“. Darunter Regale für „Weiterspielen“, Favoriten, alle Spiele, Genres und Plattformen. Der Hintergrund nimmt die Farbe des Covers an.
-- **Plattform-Filter.** Ein Klick auf „Nintendo 64“, „GameCube“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
+- **Plattform-Filter.** Ein Klick auf „N64“, „GCN“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
 - **Artwork groß ansehen.** Ein Klick auf ein Cover holt das Spiel auf die Bühne und scrollt sanft nach oben.
 - **macOS-Widget.** Ein echtes Widget für Schreibtisch und Mitteilungszentrale (mittel und groß) mit den zuletzt gespielten Spielen. Ein Klick aufs Cover startet das Spiel. Installation: Einstellungen, „macOS-Widget“, „Installieren“. Der Launcher baut es dann mit Xcode und legt es unter `~/Applications/Spieleregal Widget.app` ab.
 - **Schwebendes Widget-Fenster.** Dasselbe als breites Fenster der App, ohne Xcode. Ein- und ausschalten in den Einstellungen oder mit ⇧⌘W.

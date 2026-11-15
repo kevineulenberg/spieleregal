@@ -41,6 +41,9 @@ const GLYPH = {
   laptop: '<rect x="4" y="4.500" width="12" height="8.500" rx="1.400"/><path d="M2 15.500h16"/>',
   gamepad: '<path d="M6 6.500h8a4 4 0 0 1 3.900 3.200l.5 2.600a2.100 2.100 0 0 1-3.700 1.700L13.500 12.500h-7L5.300 14a2.100 2.100 0 0 1-3.700-1.700l.5-2.600A4 4 0 0 1 6 6.500z"/><path d="M6.500 8.500v2.400M5.300 9.700h2.400"/><circle cx="13.500" cy="9.700" r=".7" fill="currentColor"/>',
 };
+// Gängige Kurzformen der Plattformen für die Filterleiste
+const SHORT = { 'Nintendo 64': 'N64', 'GameCube': 'GCN', 'Game Boy': 'GB', 'Game Boy Color': 'GBC', 'Game Boy Advance': 'GBA', 'Nintendo DS': 'NDS', 'Nintendo 3DS': '3DS',
+  'PlayStation': 'PS1', 'PlayStation 2': 'PS2', 'PlayStation 3': 'PS3', 'Xbox 360': 'X360', 'Dreamcast': 'DC', 'Mega Drive': 'MD', 'Saturn': 'SAT' };
 function glyph(p) {
   if (/^(Nintendo 64|NES|SNES|Mega Drive)$/.test(p)) return GLYPH.cartridge;
   if (/Game Boy|DS$|PSP/.test(p)) return GLYPH.handheld;
@@ -55,10 +58,10 @@ function renderFilters() {
   for (const g of S.games) if (g.platform) counts.set(g.platform, (counts.get(g.platform) || 0) + 1);
   if (platform && !counts.has(platform)) platform = '';
   const list = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  const chip = (name, label, n, d) => `<button class="filter${platform === name ? ' on' : ''}" data-p="${esc(name)}" aria-pressed="${platform === name}">${ICON(d)}<span>${esc(label)}</span><small>${n}</small></button>`;
+  const chip = (name, label, n, d) => `<button class="filter${platform === name ? ' on' : ''}" data-p="${esc(name)}" title="${esc(name || 'Alle Plattformen')}" aria-label="${esc(name || 'Alle')}, ${n} Spiele" aria-pressed="${platform === name}">${ICON(d)}<span>${esc(label)}</span><small>${n}</small></button>`;
   const el = $('#filters');
   el.hidden = list.length < 2;
-  el.innerHTML = chip('', 'Alle', S.games.length, GLYPH.all) + list.map(([p, n]) => chip(p, p, n, glyph(p))).join('');
+  el.innerHTML = chip('', 'Alle', S.games.length, GLYPH.all) + list.map(([p, n]) => chip(p, SHORT[p] || p, n, glyph(p))).join('');
 }
 $('#filters').addEventListener('click', (e) => {
   const b = e.target.closest('.filter'); if (!b) return;
