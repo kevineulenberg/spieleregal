@@ -27,10 +27,6 @@
 - **Cover und Icons.** Suche über mehrere Quellen, eigenes Bild hochladen oder hineinziehen, Icon austauschen.
 - **Bedienung.** Suche, Rechtsklick-Menü, Pfeiltasten und Gamepad.
 
-| Regal-Ansicht | Hülle herausgezogen |
-| --- | --- |
-| ![Regal mit Hüllen](docs/regal.png) | ![Herausgezogene Hülle mit Spielinfos](docs/regal-gezogen.png) |
-
 | Plattform-Filter | Details und Cover-Suche |
 | --- | --- |
 | ![Filter auf Nintendo 64](docs/filter.png) | ![Detailfenster mit Cover-Suche](docs/details.png) |
@@ -46,6 +42,25 @@
 
 <p align="center">
   <img src="docs/start-animation.png" width="70%" alt="Start-Animation">
+</p>
+
+## Regal-Ansicht
+
+Die zweite Ansicht neben der Mediathek: ein beleuchtetes Regal, in dem die Spiele als 3D-Hüllen mit dem Rücken nach vorn stehen.
+
+<p align="center">
+  <img src="docs/regal.png" alt="Regal-Ansicht mit Hüllen nach Plattform sortiert">
+</p>
+
+- **Umschalten.** Knopf neben dem Zahnrad, Schalter „Regal-Ansicht“ in den Einstellungen oder ⌘2. Derselbe Weg führt zurück zur Mediathek, die Wahl bleibt gespeichert.
+- **Aufbau.** Die Spiele sind nach Plattform gruppiert und stehen auf Böden; ein Schildchen an der Kante nennt die Plattform. Auf jedem Rücken stehen Plattform und Titel, die Farbe kommt aus dem Cover.
+- **Hüllen.** Jede Plattform hat eigene Maße und Farben: schwarze Hüllen für GameCube und PS2, hellblau für Wii U, grün für Xbox, weiß für Wii, flachere und dickere Kartons für N64 und Game Boy Advance.
+- **Herausziehen.** Beim Überfahren schiebt sich eine Hülle ein Stück heraus und dreht sich leicht. Ein Klick zieht sie aus dem Regal, dreht sie zur Front und stellt sie groß neben Titel, Beschreibung und „Spielen“. Esc oder ein Klick daneben schiebt sie zurück.
+- **Licht.** Die Leisten über den Böden nehmen die Farbe des Spiels an, über dem der Mauszeiger steht.
+- **Wie gewohnt.** Plattform-Filter, Suche, Pfeiltasten, Rechtsklick-Menü und Start-Animation funktionieren auch hier.
+
+<p align="center">
+  <img src="docs/regal-gezogen.png" alt="Herausgezogene Hülle mit Spielinfos">
 </p>
 
 ## macOS-Widget
