@@ -1,0 +1,8 @@
+{
+  "name": "game-launcher",
+  "productName": "Game Launcher",
+  "version": "1.0.0",
+  "description": "Persönliche Spiele-Mediathek für macOS",
+  "main": "main.js",
+  "private": true
+}
