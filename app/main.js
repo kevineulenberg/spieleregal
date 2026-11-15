@@ -8,6 +8,17 @@ const { pathToFileURL } = require('url');
 const covers = require('./covers');
 
 app.setName('Game Launcher');
+let appReady = false, openedByUrl = false;
+const urlQueue = [];
+app.on('open-url', (e, url) => { e.preventDefault(); if (appReady) handleUrl(url); else { openedByUrl = true; urlQueue.push(url); } });
+async function handleUrl(url) {
+  const m = /^spieleregal-launcher:\/\/([a-z]+)\/?([^?#]*)/.exec(url);
+  log('Link', url);
+  if (m && m[1] === 'launch' && m[2]) {
+    const r = await handlers.launch(decodeURIComponent(m[2]));
+    if (!r.ok) { handlers.showMain(); setTimeout(() => alive(win) && win.webContents.send('toast', r.error, true), 1500); }
+  } else handlers.showMain();
+}
 if (!app.requestSingleInstanceLock()) app.quit();
 const isMac = process.platform === 'darwin';
 let win, widget, lib, dirs;
@@ -28,9 +39,12 @@ function log(...a) {
 const withTimeout = (p, ms, fallback) => Promise.race([p, new Promise((r) => setTimeout(() => r(fallback), ms))]);
 
 /* ---------- Bibliothek ---------- */
+const WIDGET_APP = path.join(os.homedir(), 'Applications', 'Spieleregal Widget.app');
+let reloadTimer;
 function save() {
-  const tmp = path.join(dirs.root, 'library.json');
-  fs.writeFileSync(tmp, JSON.stringify(lib, null, 2));
+  fs.writeFileSync(path.join(dirs.root, 'library.json'), JSON.stringify(lib, null, 2));
+  // Das macOS-Widget liest dieselbe Datei; kurz Bescheid geben, damit es neu zeichnet
+  if (isMac && exists(WIDGET_APP)) { clearTimeout(reloadTimer); reloadTimer = setTimeout(() => execFile('/usr/bin/open', ['-g', 'spieleregal://reload'], () => {}), 1500); }
 }
 function load() {
   dirs = { root: app.getPath('userData') };
@@ -45,7 +59,8 @@ function load() {
     lib = { version: 2, settings: { sgdbKey: '' }, games: [] };
     const seedDir = path.join(__dirname, 'seed');
     for (const g of JSON.parse(fs.readFileSync(path.join(seedDir, 'seed.json'), 'utf8'))) {
-      const game = { ...g, path: expand(g.path), addedAt: Date.now(), favorite: false, playCount: 0, lastPlayed: 0 };
+      const { rev, ...rest } = g;
+      const game = { ...rest, path: expand(g.path), seedRev: rev || 1, addedAt: Date.now(), favorite: false, playCount: 0, lastPlayed: 0 };
       const src = path.join(seedDir, 'covers', g.id + '.png');
       if (exists(src)) {
         game.cover = path.join(dirs.covers, g.id + '.png');
@@ -57,7 +72,15 @@ function load() {
     save();
   }
   lib.settings.folders = lib.settings.folders || ['~/Documents/Games/Games Shortcuts', '~/Desktop'];
-  if (relink()) save();
+  let changed = relink();
+  // Hat ein Eintrag der Startbibliothek eine neuere Revision, gilt dessen Pfad
+  try {
+    for (const s of JSON.parse(fs.readFileSync(path.join(__dirname, 'seed', 'seed.json'), 'utf8'))) {
+      const g = find(s.id);
+      if (g && s.rev && (g.seedRev || 1) < s.rev && exists(expand(s.path))) { log('Startpfad aktualisiert', g.title, s.path); g.path = expand(s.path); delete g.target; g.seedRev = s.rev; delete g.icon; changed = true; }
+    }
+  } catch (e) { log('Seed', String(e)); }
+  if (changed) save();
 }
 
 // Verschobene Spiele wiederfinden: gleicher Dateiname in einem der Spiele-Ordner
@@ -97,7 +120,7 @@ const fileUrl = (p) => (p && exists(p) ? pathToFileURL(p).href + '?v=' + Math.ro
 function view(g) {
   return { ...g, coverUrl: fileUrl(g.cover), iconUrl: fileUrl(g.icon), missing: !exists(g.path) };
 }
-const state = () => ({ games: lib.games.map(view), settings: { ...lib.settings, openAtLogin: isMac ? app.getLoginItemSettings().openAtLogin : false }, platforms: covers.PLATFORMS });
+const state = () => ({ games: lib.games.map(view), widgetInstalled: isMac && exists(WIDGET_APP), settings: { ...lib.settings, openAtLogin: isMac ? app.getLoginItemSettings().openAtLogin : false }, platforms: covers.PLATFORMS });
 const find = (id) => lib.games.find((g) => g.id === id);
 const alive = (w) => w && !w.isDestroyed();
 const push = () => { const s = state(); for (const w of [win, widget]) if (alive(w)) w.webContents.send('state', s); };
@@ -270,6 +293,18 @@ const handlers = {
     if ('folders' in patch && relink()) save();
     push(); buildMenu();
   },
+  async installWidget() {
+    if (!isMac) return { ok: false, log: 'Das Widget gibt es nur unter macOS.' };
+    const src = path.join(dirs.root, 'widget-src'), out = path.join(dirs.root, 'widget-build');
+    fs.rmSync(src, { recursive: true, force: true });
+    fs.cpSync(path.join(__dirname, 'widget'), src, { recursive: true });
+    const launcher = path.resolve(process.execPath, '../../..');
+    const text = await new Promise((res) => execFile('/bin/bash', [path.join(src, 'build.sh'), src, out, launcher], { timeout: 600000, maxBuffer: 32e6, env: { ...process.env, PATH: '/usr/bin:/bin:/usr/sbin:/sbin:' + (process.env.PATH || '') } }, (err, so, se) => res((so || '') + (se || '') + (err && !so ? String(err) : ''))));
+    try { fs.writeFileSync(path.join(dirs.root, 'widget-build.log'), text); if (devLog) fs.writeFileSync(path.join(path.dirname(devLog), 'widget-build.log'), text); } catch {}
+    const ok = /ERGEBNIS: OK/.test(text);
+    log('Widget-Installation', ok ? 'ok' : 'fehlgeschlagen');
+    return { ok, built: /ERGEBNIS: GEBAUT/.test(text), log: text.split('\n').filter((l) => /error|ERGEBNIS|BUILD/.test(l)).slice(-6).join('\n') };
+  },
   showMain() { if (alive(win)) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } else createWindow(); if (isMac) app.focus({ steal: true }); },
   hideWidget() { handlers.setSettings({ widget: false }); },
   reveal(id) { const g = find(id); if (g && exists(g.path)) shell.showItemInFolder(g.path); },
@@ -331,7 +366,12 @@ app.whenReady().then(async () => {
   if (lib.settings.widget) toggleWidget(true);
   // Beim Anmelden mit aktivem Widget nur das Widget zeigen
   const atLogin = isMac && app.getLoginItemSettings().wasOpenedAtLogin;
-  if (!(atLogin && lib.settings.widget)) createWindow();
+  appReady = true;
+  if (openedByUrl) {
+    // Vom Widget geweckt: nur den Auftrag ausführen, kein Fenster aufdrängen
+    for (const u of urlQueue.splice(0)) await handleUrl(u);
+    setTimeout(() => { if (!BrowserWindow.getAllWindows().length) app.quit(); }, 6000);
+  } else if (!(atLogin && lib.settings.widget)) createWindow();
   // Icons der vorhandenen Apps einmalig nachladen
   (async () => { let ch = false; for (const g of lib.games) if (!g.icon) { try { await extractIcon(g); if (g.icon) ch = true; } catch {} } if (ch) { save(); push(); } })();
   app.on('activate', () => handlers.showMain());

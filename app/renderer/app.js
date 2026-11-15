@@ -235,6 +235,13 @@ sheet.addEventListener('click', async (e) => {
   }
   else if (act === 'save-settings') { await api.setSettings({ sgdbKey: $('#s-key').value.trim(), widget: $('#s-widget').checked, openAtLogin: $('#s-login').checked, folders: $('#s-folders').value.split('\n').map((s) => s.trim()).filter(Boolean) }); sheet.close(); toast('Einstellungen gespeichert'); }
   else if (act === 'fetch-missing') { const b = e.target.closest('button'); b.disabled = true; b.innerHTML = '<i class="spinner"></i>Lade Cover'; const n = await api.fetchMissing(); b.disabled = false; b.textContent = 'Fehlende Cover jetzt laden'; toast(n ? `${n} Cover geladen` : 'Keine neuen Cover gefunden'); }
+  else if (act === 'install-widget') {
+    const b = e.target.closest('button'), out = $('#s-wlog'); b.disabled = true; b.innerHTML = '<i class="spinner"></i>Baue';
+    const r = await api.installWidget();
+    b.disabled = false; b.textContent = 'Neu bauen';
+    if (out) { out.hidden = r.ok; out.textContent = r.log; }
+    toast(r.ok ? 'Widget installiert. Rechtsklick auf den Schreibtisch, „Widgets bearbeiten“, „Spieleregal“.' : r.built ? 'Gebaut, aber macOS hat das Widget noch nicht registriert' : 'Das Widget konnte nicht gebaut werden', !r.ok);
+  }
   else if (act === 'link') api.openExternal(e.target.closest('[data-href]').dataset.href);
 });
 sheet.addEventListener('error', (e) => { if (e.target.closest?.('.res')) e.target.closest('.res').remove(); }, true);
@@ -250,7 +257,8 @@ function openSettings() {
   <div class="sheet-body"><div class="form" style="grid-template-columns:1fr">
     ${field('SteamGridDB-Schlüssel', `<input id="s-key" type="password" value="${esc(S.settings.sgdbKey || '')}" placeholder="Optional">`)}
     <p class="hint">Neue Spiele bekommen ihr Cover automatisch aus libretro-Boxarts, Steam und Wikipedia. SteamGridDB hat die größte Auswahl an hochauflösenden Covern, braucht aber einen kostenlosen Schlüssel: <a data-act="link" data-href="https://www.steamgriddb.com/profile/preferences/api">steamgriddb.com öffnen</a>, anmelden und den API-Schlüssel hier einfügen.</p>
-    <label class="check"><input type="checkbox" id="s-widget"${S.settings.widget ? ' checked' : ''}><span>Widget auf dem Schreibtisch zeigen<small>Breites Fenster mit den zuletzt gespielten Spielen. Bleibt offen, auch wenn die Bibliothek geschlossen ist.</small></span></label>
+    <div class="native"><div><b>macOS-Widget</b><small>${S.widgetInstalled ? 'Installiert. Hinzufügen: Rechtsklick auf den Schreibtisch, „Widgets bearbeiten“, dann „Spieleregal“.' : 'Echtes Widget für Schreibtisch und Mitteilungszentrale. Wird einmalig mit Xcode gebaut, das dauert etwa eine Minute.'}</small><pre id="s-wlog" hidden></pre></div><button class="btn ghost" data-act="install-widget">${S.widgetInstalled ? 'Neu bauen' : 'Installieren'}</button></div>
+    <label class="check"><input type="checkbox" id="s-widget"${S.settings.widget ? ' checked' : ''}><span>Schwebendes Widget-Fenster zeigen<small>Breites Fenster mit den zuletzt gespielten Spielen. Bleibt offen, auch wenn die Bibliothek geschlossen ist.</small></span></label>
     <label class="check"><input type="checkbox" id="s-login"${S.settings.openAtLogin ? ' checked' : ''}><span>Beim Anmelden starten<small>Mit aktivem Widget erscheint dann nur das Widget.</small></span></label>
     ${field('Spiele-Ordner, einer pro Zeile', `<textarea id="s-folders" rows="2" spellcheck="false">${esc((S.settings.folders || []).join('\n'))}</textarea>`)}
     <p class="hint">Wird ein Spiel verschoben, sucht der Launcher es in diesen Ordnern unter demselben Namen und ordnet es neu zu.</p>
@@ -400,6 +408,6 @@ function apply(state) {
   if (firstPaint) setTimeout(() => { firstPaint = false; rows.classList.remove('load'); }, 2000);
 }
 api.on('state', apply);
-api.on('toast', (m) => toast(m));
+api.on('toast', (m, err) => toast(m, err));
 api.on('cmd', async (c) => { if (c === 'add') { if (!sheet.open) $('#add').click(); } else if (c === 'search') qInput.focus(); else if (c === 'settings') openSettings(); });
 api.state().then(apply);

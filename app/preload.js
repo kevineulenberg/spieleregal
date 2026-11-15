@@ -15,6 +15,7 @@ contextBridge.exposeInMainWorld('api', {
   setSettings: call('setSettings'),
   reveal: call('reveal'),
   showMain: call('showMain'),
+  installWidget: call('installWidget'),
   hideWidget: call('hideWidget'),
   openExternal: call('openExternal'),
   pathFor: (file) => webUtils.getPathForFile(file),

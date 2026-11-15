@@ -26,6 +26,7 @@ plutil -replace CFBundleIconFile -string "icon.icns" "$PLIST"
 plutil -replace CFBundleShortVersionString -string "1.0.0" "$PLIST"
 plutil -replace CFBundleVersion -string "1.0.0" "$PLIST"
 plutil -replace LSApplicationCategoryType -string "public.app-category.games" "$PLIST"
+plutil -insert CFBundleURLTypes -json '[{"CFBundleURLName":"Spieleregal","CFBundleURLSchemes":["spieleregal-launcher"]}]' "$PLIST" 2>/dev/null || true
 plutil -remove ElectronAsarIntegrity "$PLIST" 2>/dev/null || true
 
 touch "$APP"

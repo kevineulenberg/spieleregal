@@ -18,7 +18,8 @@
 - **Bühne und Regale.** Das gewählte Spiel steht groß oben, mit 3D-Cover, Beschreibung und „Spielen“. Darunter Regale für „Weiterspielen“, Favoriten, alle Spiele, Genres und Plattformen. Der Hintergrund nimmt die Farbe des Covers an.
 - **Plattform-Filter.** Ein Klick auf „Nintendo 64“, „GameCube“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
 - **Artwork groß ansehen.** Ein Klick auf ein Cover holt das Spiel auf die Bühne und scrollt sanft nach oben.
-- **Widget.** Ein breites Fenster für den Schreibtisch zeigt die zuletzt gespielten Spiele. Ein Klick aufs Cover startet das Spiel, „Bibliothek öffnen“ holt den Launcher nach vorn. Ein- und ausschalten in den Einstellungen oder mit ⇧⌘W.
+- **macOS-Widget.** Ein echtes Widget für Schreibtisch und Mitteilungszentrale (mittel und groß) mit den zuletzt gespielten Spielen. Ein Klick aufs Cover startet das Spiel. Installation: Einstellungen, „macOS-Widget“, „Installieren“. Der Launcher baut es dann mit Xcode und legt es unter `~/Applications/Spieleregal Widget.app` ab.
+- **Schwebendes Widget-Fenster.** Dasselbe als breites Fenster der App, ohne Xcode. Ein- und ausschalten in den Einstellungen oder mit ⇧⌘W.
 - **Verschobene Spiele.** Liegt ein Spiel nicht mehr am alten Ort, sucht der Launcher es unter demselben Namen in den eingestellten Spiele-Ordnern.
 - **Starten.** Per „Spielen“, Doppelklick oder Eingabetaste. Apps, Ordner und Startdateien funktionieren; bei Ordnern sucht der Launcher die App darin.
 - **Spiele hinzufügen.** Über „Spiel hinzufügen“ oder per Ziehen ins Fenster. Cover und App-Icon werden automatisch geholt.
@@ -54,7 +55,7 @@ Den SteamGridDB-Schlüssel trägst du in den Einstellungen ein (⌘,).
 
 ## Bauen
 
-Voraussetzung: macOS. Node oder npm braucht es nicht.
+Voraussetzung: macOS. Node oder npm braucht es nicht. Für das macOS-Widget zusätzlich Xcode (ab macOS 14).
 
 ```bash
 ./scripts/build.sh
@@ -81,7 +82,8 @@ app/
   main.js        Bibliothek, Spielstart, Icons aus .app-Bündeln
   covers.js      Cover-Quellen und Trefferbewertung
   preload.js     Brücke zwischen Oberfläche und Hauptprozess
-  renderer/      Oberfläche und Widget (HTML, CSS, JavaScript ohne Framework)
+  renderer/      Oberfläche und Widget-Fenster (HTML, CSS, JavaScript ohne Framework)
+  widget/        macOS-Widget (SwiftUI, WidgetKit) samt Xcode-Projekt und Bauskript
   seed/          Startbibliothek mit Covern
 scripts/build.sh Baut die Mac-App
 test/harness.js  Testlauf mit Screenshots
