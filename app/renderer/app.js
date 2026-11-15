@@ -7,7 +7,7 @@ const HEART = '<svg class="heart" viewBox="0 0 20 20" width="18" height="18"><pa
 const CHEV = (d) => `<svg viewBox="0 0 20 20" width="26" height="26"><path d="${d > 0 ? 'm7 3 7 7-7 7' : 'm13 3-7 7 7 7'}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 let S = { games: [], settings: {}, platforms: [] };
-let featured = null, query = '', platform = '', view = 'rows', firstPaint = true, sheetId = null, hoverTimer = null;
+let featured = null, query = '', platform = '', view = 'rows', firstPaint = true, sheetId = null;
 const scroll = $('#scroll'), sheet = $('#sheet');
 
 const game = (id) => S.games.find((g) => g.id === id);
@@ -328,11 +328,7 @@ rows.addEventListener('mousemove', (e) => {
   c.style.setProperty('--ty', ((px - 0.5) * 14).toFixed(1) + 'deg'); c.style.setProperty('--tx', ((0.5 - py) * 12).toFixed(1) + 'deg');
   c.style.setProperty('--gx', px * 100 + '%'); c.style.setProperty('--gy', py * 100 + '%');
 });
-rows.addEventListener('mouseover', (e) => {
-  const c = e.target.closest('.card'); clearTimeout(hoverTimer);
-  if (c && c.dataset.id !== featured) hoverTimer = setTimeout(() => setFeatured(c.dataset.id), 420);
-});
-rows.addEventListener('mouseout', (e) => { const c = e.target.closest('.card'); if (c && !c.contains(e.relatedTarget)) { clearTimeout(hoverTimer); c.style.setProperty('--tx', '0deg'); c.style.setProperty('--ty', '0deg'); } });
+rows.addEventListener('mouseout', (e) => { const c = e.target.closest('.card'); if (c && !c.contains(e.relatedTarget)) { c.style.setProperty('--tx', '0deg'); c.style.setProperty('--ty', '0deg'); } });
 rows.addEventListener('focusin', (e) => { const c = e.target.closest('.card'); if (c && c.matches(':focus-visible')) setFeatured(c.dataset.id); });
 
 /* ---------- Bühne: Bedienung ---------- */
