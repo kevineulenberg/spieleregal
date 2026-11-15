@@ -16,6 +16,7 @@
 ## Was es kann
 
 - **Bühne und Regale.** Das gewählte Spiel steht groß oben, mit 3D-Cover, Beschreibung und „Spielen“. Darunter Regale für „Weiterspielen“, Favoriten, alle Spiele, Genres und Plattformen. Der Hintergrund nimmt die Farbe des Covers an.
+- **Regal-Ansicht.** Statt der Mediathek ein beleuchtetes Regal: Die Spiele stehen als 3D-Hüllen mit dem Rücken nach vorn, in Maßen und Farben ihrer Plattform (schwarze GameCube-Hülle, hellblaue Wii-U-Hülle, grüne Xbox-Hülle, N64-Karton). Beim Überfahren schiebt sich eine Hülle heraus, ein Klick zieht sie ganz aus dem Regal. Umschalten über den Knopf neben dem Zahnrad oder in den Einstellungen.
 - **Plattform-Filter.** Ein Klick auf „N64“, „GCN“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
 - **Artwork groß ansehen.** Ein Klick auf ein Cover holt das Spiel auf die Bühne und scrollt sanft nach oben.
 - **macOS-Widget.** Ein echtes Widget für Schreibtisch und Mitteilungszentrale (mittel und groß) mit den zuletzt gespielten Spielen. Ein Klick aufs Cover startet das Spiel. Installation: Einstellungen, „macOS-Widget“, „Installieren“. Der Launcher baut es dann mit Xcode und legt es unter `~/Applications/Spieleregal Widget.app` ab.
@@ -25,6 +26,10 @@
 - **Spiele hinzufügen.** Über „Spiel hinzufügen“ oder per Ziehen ins Fenster. Cover und App-Icon werden automatisch geholt.
 - **Cover und Icons.** Suche über mehrere Quellen, eigenes Bild hochladen oder hineinziehen, Icon austauschen.
 - **Bedienung.** Suche, Rechtsklick-Menü, Pfeiltasten und Gamepad.
+
+| Regal-Ansicht | Hülle herausgezogen |
+| --- | --- |
+| ![Regal mit Hüllen](docs/regal.png) | ![Herausgezogene Hülle mit Spielinfos](docs/regal-gezogen.png) |
 
 | Plattform-Filter | Details und Cover-Suche |
 | --- | --- |
@@ -91,6 +96,7 @@ Das Skript lädt Electron, legt `app/` hinein und setzt Name und Icon. Das Ergeb
 
 | Aktion | Maus | Tastatur | Gamepad |
 | --- | --- | --- | --- |
+| Ansicht wechseln (Mediathek, Regal) | Knopf neben dem Zahnrad | | |
 | Spiel wählen und groß ansehen | Klick aufs Cover | Pfeiltasten | Steuerkreuz, Stick |
 | Spielen | Doppelklick, Play-Knopf | Eingabe | A |
 | Details | „Details“, Rechtsklick | Leertaste | Y |
@@ -105,7 +111,7 @@ app/
   main.js        Bibliothek, Spielstart, Icons aus .app-Bündeln
   covers.js      Cover-Quellen und Trefferbewertung
   preload.js     Brücke zwischen Oberfläche und Hauptprozess
-  renderer/      Oberfläche und Widget-Fenster (HTML, CSS, JavaScript ohne Framework)
+  renderer/      Oberfläche (Mediathek, Regal) und Widget-Fenster (HTML, CSS, JavaScript ohne Framework)
   widget/        macOS-Widget (SwiftUI, WidgetKit) samt Xcode-Projekt und Bauskript
   seed/          Startbibliothek mit Covern
 scripts/build.sh Baut die Mac-App

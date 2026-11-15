@@ -7,7 +7,7 @@ const HEART = '<svg class="heart" viewBox="0 0 20 20" width="18" height="18"><pa
 const CHEV = (d) => `<svg viewBox="0 0 20 20" width="26" height="26"><path d="${d > 0 ? 'm7 3 7 7-7 7' : 'm13 3-7 7 7 7'}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 let S = { games: [], settings: {}, platforms: [] };
-let featured = null, query = '', platform = '', firstPaint = true, sheetId = null, hoverTimer = null;
+let featured = null, query = '', platform = '', view = 'rows', firstPaint = true, sheetId = null, hoverTimer = null;
 const scroll = $('#scroll'), sheet = $('#sheet');
 
 const game = (id) => S.games.find((g) => g.id === id);
@@ -28,6 +28,18 @@ function toast(msg, err) {
   const t = document.createElement('div'); t.className = 'toast' + (err ? ' err' : ''); t.textContent = msg; $('#toasts').append(t);
   setTimeout(() => { t.classList.add('bye'); setTimeout(() => t.remove(), 400); }, err ? 6000 : 3200);
 }
+
+/* ---------- Ansicht: Mediathek oder Regal ---------- */
+const VIEW_ICON = {
+  rows: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.700" stroke-linecap="round"><path d="M3 4v11M6.500 4v11M10 4v11M13 5l3.500 10M2 17h16"/></svg>',
+  shelf: '<svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.700" stroke-linejoin="round"><rect x="2.500" y="3" width="15" height="6" rx="1.500"/><rect x="2.500" y="11.500" width="4" height="5.500" rx="1"/><rect x="8" y="11.500" width="4" height="5.500" rx="1"/><rect x="13.500" y="11.500" width="4" height="5.500" rx="1"/></svg>',
+};
+function draw() {
+  document.body.classList.toggle('view-shelf', view === 'shelf');
+  const b = $('#viewtoggle'); b.innerHTML = VIEW_ICON[view]; b.title = view === 'shelf' ? 'Zur Mediathek wechseln' : 'Zum Regal wechseln'; b.setAttribute('aria-label', b.title);
+  if (view === 'shelf') renderShelf(); else renderRows();
+}
+$('#viewtoggle').onclick = () => { if (typeof pulled !== 'undefined' && pulled) return; firstPaint = true; setTimeout(() => (firstPaint = false), 1600); api.setSettings({ view: view === 'shelf' ? 'rows' : 'shelf' }); };
 
 /* ---------- Plattform-Filter ---------- */
 const ICON = (d) => `<svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
@@ -66,7 +78,7 @@ function renderFilters() {
 $('#filters').addEventListener('click', (e) => {
   const b = e.target.closest('.filter'); if (!b) return;
   platform = b.dataset.p; firstPaint = false;
-  renderFilters(); renderRows();
+  renderFilters(); draw();
   const first = $('.card', rows); if (first && !(game(featured) && (!platform || game(featured).platform === platform))) setFeatured(first.dataset.id);
 });
 
@@ -149,9 +161,10 @@ function setFeatured(id, force) {
 let launching = false;
 async function launch(id, from) {
   const g = game(id); if (!g || launching) return;
-  launching = true; setFeatured(id);
+  launching = true; if (view !== 'shelf') setFeatured(id);
   const L = $('#launch'), cov = $('.launch-cover', L), img = $('img', cov);
-  const src = (from && from.getBoundingClientRect().width ? from : $('#h-box')).getBoundingClientRect();
+  let src = (from && from.getBoundingClientRect().width ? from : $('#h-box')).getBoundingClientRect();
+  if (!src.width) src = { left: innerWidth / 2 - 60, top: innerHeight / 2 - 80, width: 120, height: 160 };
   const ratio = g.coverUrl ? Math.min(1.5, Math.max(0.62, g.ratio || 0.7)) : 0.7;
   let h = Math.min(innerHeight * 0.52, 460), w = h * ratio; if (w > innerWidth * 0.6) { w = innerWidth * 0.6; h = w / ratio; }
   const x = (innerWidth - w) / 2, y = (innerHeight - h) / 2 - 30;
@@ -236,7 +249,7 @@ sheet.addEventListener('click', async (e) => {
     if (b.dataset.sure) { const t = game(id).title; sheetId = null; sheet.close(); await api.remove(id); toast(`„${t}“ aus dem Regal genommen`); }
     else { b.dataset.sure = 1; b.textContent = 'Wirklich entfernen? Das Spiel selbst bleibt erhalten'; setTimeout(() => { if (b.isConnected) { delete b.dataset.sure; b.textContent = 'Aus dem Regal nehmen'; } }, 4000); }
   }
-  else if (act === 'save-settings') { await api.setSettings({ sgdbKey: $('#s-key').value.trim(), widget: $('#s-widget').checked, openAtLogin: $('#s-login').checked, folders: $('#s-folders').value.split('\n').map((s) => s.trim()).filter(Boolean) }); sheet.close(); toast('Einstellungen gespeichert'); }
+  else if (act === 'save-settings') { await api.setSettings({ sgdbKey: $('#s-key').value.trim(), widget: $('#s-widget').checked, view: $('#s-shelf').checked ? 'shelf' : 'rows', openAtLogin: $('#s-login').checked, folders: $('#s-folders').value.split('\n').map((s) => s.trim()).filter(Boolean) }); sheet.close(); toast('Einstellungen gespeichert'); }
   else if (act === 'fetch-missing') { const b = e.target.closest('button'); b.disabled = true; b.innerHTML = '<i class="spinner"></i>Lade Cover'; const n = await api.fetchMissing(); b.disabled = false; b.textContent = 'Fehlende Cover jetzt laden'; toast(n ? `${n} Cover geladen` : 'Keine neuen Cover gefunden'); }
   else if (act === 'install-widget') {
     const b = e.target.closest('button'), out = $('#s-wlog'); b.disabled = true; b.innerHTML = '<i class="spinner"></i>Baue';
@@ -260,6 +273,7 @@ function openSettings() {
   <div class="sheet-body"><div class="form" style="grid-template-columns:1fr">
     ${field('SteamGridDB-Schlüssel', `<input id="s-key" type="password" value="${esc(S.settings.sgdbKey || '')}" placeholder="Optional">`)}
     <p class="hint">Neue Spiele bekommen ihr Cover automatisch aus libretro-Boxarts, Steam und Wikipedia. SteamGridDB hat die größte Auswahl an hochauflösenden Covern, braucht aber einen kostenlosen Schlüssel: <a data-act="link" data-href="https://www.steamgriddb.com/profile/preferences/api">steamgriddb.com öffnen</a>, anmelden und den API-Schlüssel hier einfügen.</p>
+    <label class="check"><input type="checkbox" id="s-shelf"${view === 'shelf' ? ' checked' : ''}><span>Regal-Ansicht<small>Zeigt die Spiele als Hüllen im Regal statt als Mediathek. Auch über den Knopf neben dem Zahnrad umschaltbar.</small></span></label>
     <div class="native"><div><b>macOS-Widget</b><small>${S.widgetInstalled ? 'Installiert. Hinzufügen: Rechtsklick auf den Schreibtisch, „Widgets bearbeiten“, dann „Spieleregal“.' : 'Echtes Widget für Schreibtisch und Mitteilungszentrale. Wird einmalig mit Xcode gebaut, das dauert etwa eine Minute.'}</small><pre id="s-wlog" hidden></pre></div><button class="btn ghost" data-act="install-widget">${S.widgetInstalled ? 'Neu bauen' : 'Installieren'}</button></div>
     <label class="check"><input type="checkbox" id="s-widget"${S.settings.widget ? ' checked' : ''}><span>Schwebendes Widget-Fenster zeigen<small>Breites Fenster mit den zuletzt gespielten Spielen. Bleibt offen, auch wenn die Bibliothek geschlossen ist.</small></span></label>
     <label class="check"><input type="checkbox" id="s-login"${S.settings.openAtLogin ? ' checked' : ''}><span>Beim Anmelden starten<small>Mit aktivem Widget erscheint dann nur das Widget.</small></span></label>
@@ -282,7 +296,7 @@ function openMenu(id, x, y) {
 }
 menu.addEventListener('click', async (e) => {
   const m = e.target.dataset.m, id = menu.dataset.id; menu.hidden = true; if (!m) return;
-  if (m === 'play') launch(id, $(`.card[data-id="${CSS.escape(id)}"] .face`));
+  if (m === 'play') launch(id, $(`.card[data-id="${CSS.escape(id)}"] .face`) || $(`.slot[data-id="${CSS.escape(id)}"]`));
   else if (m === 'details') openDetails(id);
   else if (m === 'fav') toggleFav(id);
   else if (m === 'reveal') api.reveal(id);
@@ -327,7 +341,7 @@ $('#hero').addEventListener('mousemove', (e) => {
 $('#add').onclick = async () => { const ids = await api.pickGames(); if (ids.length) afterAdd(ids); };
 $('#settings').onclick = openSettings;
 const qInput = $('#q');
-qInput.addEventListener('input', () => { query = qInput.value.trim(); firstPaint = false; renderRows(); if (query) { const first = $('.card', rows); if (first) setFeatured(first.dataset.id); } });
+qInput.addEventListener('input', () => { query = qInput.value.trim(); firstPaint = false; draw(); if (query) { const first = $('.card', rows); if (first) setFeatured(first.dataset.id); } });
 scroll.addEventListener('scroll', () => $('.bar').classList.toggle('solid', scroll.scrollTop > 40), { passive: true });
 
 /* ---------- Tastatur und Gamepad ---------- */
@@ -353,6 +367,7 @@ addEventListener('keydown', (e) => {
   if (!menu.hidden && e.key === 'Escape') { menu.hidden = true; return; }
   if (sheet.open || launching) return;
   const typing = document.activeElement === qInput;
+  if (view === 'shelf' && !typing) { if (shelfKey(e)) { e.preventDefault(); return; } if (pulled) return; if (!['/', 'f', 'F'].includes(e.key)) return; }
   if (e.key === 'Escape' && typing) { qInput.value = ''; qInput.dispatchEvent(new Event('input')); qInput.blur(); return; }
   if (typing && !['ArrowDown', 'Enter'].includes(e.key)) return;
   const k = e.key;
@@ -404,8 +419,10 @@ function afterAdd(ids) {
 /* ---------- Zustand ---------- */
 function apply(state) {
   S = state;
+  if (view !== (S.settings.view === 'shelf' ? 'shelf' : 'rows')) { view = S.settings.view === 'shelf' ? 'shelf' : 'rows'; scroll.scrollTo({ top: 0, behavior: 'instant' }); }
   renderFilters();
-  renderRows();
+  draw();
+  refreshPulled();
   setFeatured(game(featured) ? featured : (S.games.filter((g) => g.lastPlayed).sort((a, b) => b.lastPlayed - a.lastPlayed)[0] || S.games[Math.floor(Math.random() * S.games.length)])?.id, true);
   if (sheetId && sheet.open) { const g = game(sheetId); if (g) { $('#d-art').innerHTML = artHtml(g); } }
   if (firstPaint) setTimeout(() => { firstPaint = false; rows.classList.remove('load'); }, 2000);
