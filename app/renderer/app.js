@@ -7,7 +7,7 @@ const HEART = '<svg class="heart" viewBox="0 0 20 20" width="18" height="18"><pa
 const CHEV = (d) => `<svg viewBox="0 0 20 20" width="26" height="26"><path d="${d > 0 ? 'm7 3 7 7-7 7' : 'm13 3-7 7 7 7'}" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 let S = { games: [], settings: {}, platforms: [] };
-let featured = null, query = '', firstPaint = true, sheetId = null, hoverTimer = null;
+let featured = null, query = '', platform = '', firstPaint = true, sheetId = null, hoverTimer = null;
 const scroll = $('#scroll'), sheet = $('#sheet');
 
 const game = (id) => S.games.find((g) => g.id === id);
@@ -29,9 +29,47 @@ function toast(msg, err) {
   setTimeout(() => { t.classList.add('bye'); setTimeout(() => t.remove(), 400); }, err ? 6000 : 3200);
 }
 
+/* ---------- Plattform-Filter ---------- */
+const ICON = (d) => `<svg viewBox="0 0 20 20" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const GLYPH = {
+  all: '<rect x="3" y="3" width="5.500" height="5.500" rx="1.200"/><rect x="11.500" y="3" width="5.500" height="5.500" rx="1.200"/><rect x="3" y="11.500" width="5.500" height="5.500" rx="1.200"/><rect x="11.500" y="11.500" width="5.500" height="5.500" rx="1.200"/>',
+  cartridge: '<path d="M4 4.500h12v9l-1.500 2h-9L4 13.500z"/><path d="M7 7.500h6v3H7zM7.500 15.500v-2M10 15.500v-2M12.500 15.500v-2"/>',
+  handheld: '<rect x="2" y="5.500" width="16" height="9" rx="3"/><rect x="7" y="7.500" width="6" height="5" rx=".8"/><path d="M4.500 9v2M3.500 10h2"/><circle cx="15.500" cy="10" r=".7" fill="currentColor"/>',
+  console: '<rect x="3" y="6" width="14" height="8.500" rx="1.800"/><path d="M6 10.200h5M4.500 16.500h3M12.500 16.500h3"/><circle cx="14" cy="10.200" r=".8" fill="currentColor"/>',
+  disc: '<circle cx="10" cy="10" r="7"/><circle cx="10" cy="10" r="2"/><path d="M10 5.200A4.800 4.800 0 0 1 14.800 10"/>',
+  monitor: '<rect x="2.500" y="3.500" width="15" height="10" rx="1.600"/><path d="M7 17h6M10 13.500V17"/>',
+  laptop: '<rect x="4" y="4.500" width="12" height="8.500" rx="1.400"/><path d="M2 15.500h16"/>',
+  gamepad: '<path d="M6 6.500h8a4 4 0 0 1 3.900 3.200l.5 2.600a2.100 2.100 0 0 1-3.700 1.700L13.500 12.500h-7L5.300 14a2.100 2.100 0 0 1-3.700-1.700l.5-2.600A4 4 0 0 1 6 6.500z"/><path d="M6.500 8.500v2.400M5.300 9.700h2.400"/><circle cx="13.500" cy="9.700" r=".7" fill="currentColor"/>',
+};
+function glyph(p) {
+  if (/^(Nintendo 64|NES|SNES|Mega Drive)$/.test(p)) return GLYPH.cartridge;
+  if (/Game Boy|DS$|PSP/.test(p)) return GLYPH.handheld;
+  if (/PlayStation|Xbox/.test(p)) return GLYPH.disc;
+  if (/GameCube|Wii|Dreamcast|Saturn/.test(p)) return GLYPH.console;
+  if (/^(PC|DOS)$/.test(p)) return GLYPH.monitor;
+  if (p === 'Mac') return GLYPH.laptop;
+  return GLYPH.gamepad;
+}
+function renderFilters() {
+  const counts = new Map();
+  for (const g of S.games) if (g.platform) counts.set(g.platform, (counts.get(g.platform) || 0) + 1);
+  if (platform && !counts.has(platform)) platform = '';
+  const list = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  const chip = (name, label, n, d) => `<button class="filter${platform === name ? ' on' : ''}" data-p="${esc(name)}" aria-pressed="${platform === name}">${ICON(d)}<span>${esc(label)}</span><small>${n}</small></button>`;
+  const el = $('#filters');
+  el.hidden = list.length < 2;
+  el.innerHTML = chip('', 'Alle', S.games.length, GLYPH.all) + list.map(([p, n]) => chip(p, p, n, glyph(p))).join('');
+}
+$('#filters').addEventListener('click', (e) => {
+  const b = e.target.closest('.filter'); if (!b) return;
+  platform = b.dataset.p; firstPaint = false;
+  renderFilters(); renderRows();
+  const first = $('.card', rows); if (first && !(game(featured) && (!platform || game(featured).platform === platform))) setFeatured(first.dataset.id);
+});
+
 /* ---------- Regale ---------- */
 function shelves() {
-  const g = S.games, out = [];
+  const g = platform ? S.games.filter((x) => x.platform === platform) : S.games, out = [];
   if (query) {
     const q = query.toLowerCase();
     const hit = g.filter((x) => [x.title, x.platform, ...(x.genres || [])].join(' ').toLowerCase().includes(q)).sort((a, b) => sortKey(a).localeCompare(sortKey(b)));
@@ -41,10 +79,10 @@ function shelves() {
   if (recent.length) out.push({ key: 'recent', title: 'Weiterspielen', games: recent });
   const fav = g.filter((x) => x.favorite);
   if (fav.length) out.push({ key: 'fav', title: 'Favoriten', games: fav });
-  out.push({ key: 'all', title: 'Alle Spiele', games: [...g].sort((a, b) => sortKey(a).localeCompare(sortKey(b))) });
+  out.push({ key: 'all', title: platform || 'Alle Spiele', grid: !!platform, games: [...g].sort((a, b) => sortKey(a).localeCompare(sortKey(b))) });
   const groups = (field) => { const m = new Map(); for (const x of g) for (const v of [].concat(x[field] || [])) if (v) m.set(v, [...(m.get(v) || []), x]); return [...m].filter(([, l]) => l.length >= 2).sort((a, b) => b[1].length - a[1].length); };
   for (const [name, list] of groups('genres')) out.push({ key: 'g-' + name, title: name, games: list.sort((a, b) => (b.year || 0) - (a.year || 0)) });
-  for (const [name, list] of groups('platform')) out.push({ key: 'p-' + name, title: name, games: list.sort((a, b) => (a.year || 0) - (b.year || 0)) });
+  if (!platform) for (const [name, list] of groups('platform')) out.push({ key: 'p-' + name, title: name, games: list.sort((a, b) => (a.year || 0) - (b.year || 0)) });
   const fresh = [...g].sort((a, b) => b.addedAt - a.addedAt).slice(0, 10);
   if (g.length > 6 && fresh[0].addedAt - fresh[fresh.length - 1].addedAt > 60000) out.push({ key: 'new', title: 'Neu im Regal', games: fresh });
   return out;
@@ -63,7 +101,7 @@ function renderRows() {
   const list = shelves();
   if (!S.games.length) { rows.innerHTML = '<div class="empty-state">Dein Regal ist leer. Zieh eine App oder einen Ordner in dieses Fenster oder klick oben auf „Spiel hinzufügen“.</div>'; return; }
   rows.innerHTML = list.map((s, i) => `<div class="row${s.grid ? ' grid' : ''}" data-key="${esc(s.key)}" style="--i:${i}">
-    <h2>${esc(s.title)}${s.grid ? '' : `<small>${s.games.length}</small>`}</h2>
+    <h2>${esc(s.title)}${s.key === 'search' ? '' : `<small>${s.games.length}</small>`}</h2>
     <button class="nav prev" tabindex="-1" aria-label="Zurück">${CHEV(-1)}</button><div class="track">${s.games.map(cardHtml).join('')}</div><button class="nav next" tabindex="-1" aria-label="Weiter">${CHEV(1)}</button></div>`).join('');
   $$('.row', rows).forEach((r) => { const t = $('.track', r); if (keep[r.dataset.key]) { t.style.scrollBehavior = 'auto'; t.scrollLeft = keep[r.dataset.key]; t.style.scrollBehavior = ''; } navState(r); t.addEventListener('scroll', () => navState(r), { passive: true }); });
   rows.classList.toggle('load', firstPaint);
@@ -245,7 +283,7 @@ rows.addEventListener('click', (e) => {
   const nav = e.target.closest('.nav');
   if (nav) { const t = $('.track', nav.parentNode); t.scrollBy({ left: (nav.classList.contains('next') ? 1 : -1) * t.clientWidth * 0.8 }); return; }
   const card = e.target.closest('.card'); if (!card) return;
-  if (e.target.closest('.go')) launch(card.dataset.id, $('.face', card)); else setFeatured(card.dataset.id);
+  if (e.target.closest('.go')) launch(card.dataset.id, $('.face', card)); else { setFeatured(card.dataset.id); scroll.scrollTo({ top: 0, behavior: 'smooth' }); }
 });
 rows.addEventListener('dblclick', (e) => { const c = e.target.closest('.card'); if (c && !e.target.closest('.go')) launch(c.dataset.id, $('.face', c)); });
 rows.addEventListener('contextmenu', (e) => { const c = e.target.closest('.card'); if (c) { e.preventDefault(); setFeatured(c.dataset.id); openMenu(c.dataset.id, e.clientX, e.clientY); } });
@@ -351,6 +389,7 @@ function afterAdd(ids) {
 /* ---------- Zustand ---------- */
 function apply(state) {
   S = state;
+  renderFilters();
   renderRows();
   setFeatured(game(featured) ? featured : (S.games.filter((g) => g.lastPlayed).sort((a, b) => b.lastPlayed - a.lastPlayed)[0] || S.games[Math.floor(Math.random() * S.games.length)])?.id, true);
   if (sheetId && sheet.open) { const g = game(sheetId); if (g) { $('#d-art').innerHTML = artHtml(g); } }

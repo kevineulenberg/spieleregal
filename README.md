@@ -16,14 +16,20 @@
 ## Was es kann
 
 - **Bühne und Regale.** Das gewählte Spiel steht groß oben, mit 3D-Cover, Beschreibung und „Spielen“. Darunter Regale für „Weiterspielen“, Favoriten, alle Spiele, Genres und Plattformen. Der Hintergrund nimmt die Farbe des Covers an.
+- **Plattform-Filter.** Ein Klick auf „Nintendo 64“, „GameCube“ oder „PC“ zeigt nur die Spiele dieser Plattform. Die Filter entstehen aus der eigenen Sammlung.
+- **Artwork groß ansehen.** Ein Klick auf ein Cover holt das Spiel auf die Bühne und scrollt sanft nach oben.
 - **Starten.** Per „Spielen“, Doppelklick oder Eingabetaste. Apps, Ordner und Startdateien funktionieren; bei Ordnern sucht der Launcher die App darin.
 - **Spiele hinzufügen.** Über „Spiel hinzufügen“ oder per Ziehen ins Fenster. Cover und App-Icon werden automatisch geholt.
 - **Cover und Icons.** Suche über mehrere Quellen, eigenes Bild hochladen oder hineinziehen, Icon austauschen.
 - **Bedienung.** Suche, Rechtsklick-Menü, Pfeiltasten und Gamepad.
 
-| Regale | Details und Cover-Suche |
+| Plattform-Filter | Details und Cover-Suche |
 | --- | --- |
-| ![Regale nach Genre](docs/regale.png) | ![Detailfenster mit Cover-Suche](docs/details.png) |
+| ![Filter auf Nintendo 64](docs/filter.png) | ![Detailfenster mit Cover-Suche](docs/details.png) |
+
+<p align="center">
+  <img src="docs/regale.png" alt="Regale nach Genre">
+</p>
 
 <p align="center">
   <img src="docs/start-animation.png" width="70%" alt="Start-Animation">
@@ -55,7 +61,7 @@ Das Skript lädt Electron, legt `app/` hinein und setzt Name und Icon. Das Ergeb
 
 | Aktion | Maus | Tastatur | Gamepad |
 | --- | --- | --- | --- |
-| Spiel wählen | Klick | Pfeiltasten | Steuerkreuz, Stick |
+| Spiel wählen und groß ansehen | Klick aufs Cover | Pfeiltasten | Steuerkreuz, Stick |
 | Spielen | Doppelklick, Play-Knopf | Eingabe | A |
 | Details | „Details“, Rechtsklick | Leertaste | Y |
 | Favorit | Herz | F | X |
